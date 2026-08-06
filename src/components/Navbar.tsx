@@ -1,67 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Menu, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useMotionValueEvent, useScroll } from 'framer-motion';
+import { Menu, ShoppingBag } from 'lucide-react';
 
-const Navbar: React.FC = () => {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const SOLID_AT = 24;
+const CLEAR_AT = 8;
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+/**
+ * Transparent over the dark hero, bone + blur once you're into the light half.
+ *
+ * State comes off framer's scroll motion value rather than a `window.scrollY`
+ * read inside a scroll listener. That read is a forced synchronous layout,
+ * fired outside the animation frame, right next to a live WebGL context — the
+ * classic layout-thrash setup. `useScroll` shares one passive listener and
+ * reports from inside Motion's batched frameloop instead.
+ */
+export function Navbar() {
+  const { scrollY } = useScroll();
+  const [solid, setSolid] = useState(false);
+
+  useMotionValueEvent(scrollY, 'change', (y) => {
+    // Hysteresis: without the two thresholds the nav strobes when someone
+    // rests the page exactly on the boundary.
+    setSolid((prev) => (prev ? y > CLEAR_AT : y > SOLID_AT));
+  });
 
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6 }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '80px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 40px',
-        backgroundColor: scrolled ? 'rgba(0,0,0,0.9)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(10px)' : 'none',
-        zIndex: 1000,
-        borderBottom: scrolled ? '1px solid var(--border-color)' : 'none',
-        transition: 'background-color 0.3s ease, border-bottom 0.3s ease'
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <button 
-          style={{ display: 'none' }} // Desktop hide
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-        <div style={{ display: 'flex', gap: '30px' }} className="nav-links">
-          <a href="#" style={{ fontWeight: 600, fontSize: '0.9rem', letterSpacing: '1px' }}>SHOP</a>
-          <a href="#" style={{ fontWeight: 600, fontSize: '0.9rem', letterSpacing: '1px' }}>ABOUT</a>
+    <header className="nav" data-state={solid ? 'solid' : 'clear'}>
+      <div className="shell nav__inner">
+        <div className="nav__group nav__group--start">
+          <button className="nav__burger" aria-label="Open menu">
+            <Menu size={20} strokeWidth={1.6} />
+          </button>
+          <a className="nav__link" href="#bestsellers">Shop</a>
+          <a className="nav__link" href="#detail">The Object</a>
+          <a className="nav__link" href="#story">Story</a>
+        </div>
+
+        <a className="nav__wordmark" href="/" aria-label="Chullan, home">Chullan</a>
+
+        <div className="nav__group nav__group--end">
+          <a className="nav__link" href="#">Account</a>
+          <button className="nav__bag" aria-label="Bag, 0 items">
+            <ShoppingBag size={18} strokeWidth={1.6} />
+            Bag
+            <span className="nav__count">(0)</span>
+          </button>
         </div>
       </div>
-
-      <a href="/" style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '2px' }}>
-        CHULLAN
-      </a>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <a href="#" style={{ fontWeight: 600, fontSize: '0.9rem', letterSpacing: '1px' }} className="nav-links">ACCOUNT</a>
-        <button style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShoppingBag size={20} />
-          <span style={{ fontWeight: 600 }}>0</span>
-        </button>
-      </div>
-    </motion.nav>
+    </header>
   );
-};
-
-export default Navbar;
+}

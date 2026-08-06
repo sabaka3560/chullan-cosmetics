@@ -1,23 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
-import ThreeScene from './components/ThreeScene';
-import './index.css';
+import NotFound from './pages/NotFound';
 
-const App: React.FC = () => {
+/**
+ * `basename` is taken from Vite's BASE_URL so the router keeps working when the
+ * build is served from a sub-path (GitHub Pages, a /shop mount) rather than the
+ * domain root. The catch-all keeps a deep link from rendering a blank document.
+ */
+export default function App() {
   return (
-    <Router>
-      {/* 3D Scene floats in front of everything */}
-      <ThreeScene />
-
-      {/* Website Content in normal flow */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </div>
-    </Router>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
-};
-
-export default App;
+}
