@@ -13,6 +13,19 @@ import { ROUTES } from './routes';
  * everywhere, which is what survives someone adding a page in six months.
  */
 
+/**
+ * `load` fires when the document's resources are done, which on a client-
+ * rendered SPA can be *before* React has put anything in `#root`. Querying at
+ * that moment finds an empty page and reports "0 eyebrows" — a confident,
+ * completely wrong answer rather than an error.
+ *
+ * Waiting for the root to have a child is the cheap, honest signal that the app
+ * has actually rendered.
+ */
+async function waitForApp(page: import('@playwright/test').Page) {
+  await page.locator('#root > *').first().waitFor({ state: 'attached' });
+}
+
 /** Every surface a section is allowed to sit on, from `:root`. */
 const SURFACES = [
   'rgb(255, 255, 255)', // --paper
@@ -85,6 +98,7 @@ test.describe('cross-page consistency', () => {
 
     for (const route of ROUTES) {
       await page.goto(route.path, { waitUntil: 'load' });
+      await waitForApp(page);
 
       const shapes = await page.evaluate(() => {
         return [...document.querySelectorAll<HTMLElement>('.btn--primary')]
@@ -110,6 +124,9 @@ test.describe('cross-page consistency', () => {
       }
     }
 
+    // A zero here would mean nothing was found rather than everything agreeing,
+    // which is the failure this whole helper exists to stop passing silently.
+    expect(seen.size, 'no primary buttons found on any route').toBeGreaterThan(0);
     expect(
       [...seen.keys()],
       `primary buttons render in ${seen.size} different shapes`,
@@ -121,6 +138,7 @@ test.describe('cross-page consistency', () => {
 
     for (const route of ROUTES) {
       await page.goto(route.path, { waitUntil: 'load' });
+      await waitForApp(page);
 
       const found = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>('.eyebrow')]
@@ -143,6 +161,7 @@ test.describe('cross-page consistency', () => {
 
     // The eyebrow is deliberately fixed at 11px rather than fluid — a 11→12px
     // ramp is imperceptible and only breaks the tracking rhythm.
+    expect(styles.size, 'no eyebrows found on any route').toBeGreaterThan(0);
     expect([...styles], `eyebrow renders ${styles.size} ways`).toHaveLength(1);
   });
 

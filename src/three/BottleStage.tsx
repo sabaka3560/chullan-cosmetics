@@ -123,6 +123,7 @@ function Ground({ large, moving }: { large: boolean; moving: boolean }) {
 export function BottleStage({ variant, className }: BottleStageProps) {
   const host = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
+  const [engaged, setEngaged] = useState(false);
   const reduced = usePrefersReducedMotion();
 
   const cfg = CONFIG[variant];
@@ -139,10 +140,28 @@ export function BottleStage({ variant, className }: BottleStageProps) {
     return () => io.disconnect();
   }, []);
 
+  /**
+   * Idle motion is an attract loop, and it has to yield the moment someone
+   * takes hold of the object.
+   *
+   * It did not. `Bottle` drives `rotation.y` on a group *inside*
+   * `PresentationControls` every single frame — `+=` for spin, and a bare `=`
+   * for sway, which is worse because it overwrites rather than accumulates. The
+   * controls rotate their own outer group, so the two fought: the idle motion
+   * never stopped, and on release `snap` sprang the outer group back to zero and
+   * threw the drag away. What was left to look at was the idle spin, which reads
+   * exactly like a control that has stopped responding.
+   *
+   * Once engaged the object stays under the pointer's control. Handing it back
+   * on a timer would mean the thing starts moving on its own again while the
+   * user is still looking at it, which is the same surprise a second time.
+   */
+  const idle = isShowcase && !reduced && !engaged;
+
   const bottle = (
     <Bottle
-      spin={isShowcase && !reduced ? 0.18 : 0}
-      sway={reduced ? 0 : 0.42}
+      spin={idle ? 0.18 : 0}
+      sway={reduced || engaged ? 0 : 0.42}
       textureSize={cfg.textureSize}
       segments={cfg.segments}
     />
@@ -156,6 +175,15 @@ export function BottleStage({ variant, className }: BottleStageProps) {
       ref={host}
       className={className}
       data-stage={variant}
+      /* Surfaced in the DOM so the hand-off from idle motion to user control is
+         observable from outside WebGL. Rotation state lives in a three.js scene
+         graph a test cannot reach; without this the fix is unverifiable, and an
+         unverifiable fix is one refactor from silently coming undone. */
+      data-engaged={isShowcase ? engaged : undefined}
+      /* Captured on the host rather than through the controls: it must fire on
+         the first touch anywhere in the stage, including the empty space the
+         controls themselves ignore. */
+      onPointerDown={isShowcase ? () => setEngaged(true) : undefined}
       style={{ position: 'absolute', inset: 0 }}
     >
       <Canvas
@@ -184,11 +212,21 @@ export function BottleStage({ variant, className }: BottleStageProps) {
         <Suspense fallback={null}>
           <Studio resolution={cfg.envResolution} />
 
+          {/*
+            `global` so the whole stage is the drag surface. With it off, drei
+            only listens on the mesh itself — you had to land on the bottle's
+            silhouette to start rotating, and sliding off it mid-gesture ended
+            the drag. That silhouette is a narrow shape in a square box, which is
+            a fair target for a cursor and a poor one for a thumb.
+
+            `snap` is gone. It sprang the rotation back to its start on release,
+            so on a touchscreen — where the finger lifts as soon as the gesture
+            ends — every drag visibly undid itself.
+          */}
           {isShowcase ? (
             <PresentationControls
-              global={false}
+              global
               cursor
-              snap
               speed={1.1}
               zoom={1}
               polar={[-0.2, 0.2]}

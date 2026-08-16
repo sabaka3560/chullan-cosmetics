@@ -130,6 +130,40 @@ a {
   text-decoration: none;
 }
 
+/* ── Touch feedback ───────────────────────────────────────────────────────
+   iOS and Android paint a translucent blue box over anything tappable. It is
+   the platform's own affordance, it arrives in a colour this palette does not
+   contain, and it lands on the *whole* element — so the stretched product-card
+   link flashes a full-card blue rectangle. Removing it is the only way to keep
+   tapping consistent with the rest of the UI. */
+a,
+button,
+summary,
+input,
+[tabindex] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Removing the highlight without replacing it leaves touch with no feedback at
+   all — hover states never fire on a phone, so a tap would look like nothing
+   happened. This restores the acknowledgement in the design's own terms, and
+   only where there is no pointer to hover with. */
+@media (hover: none) {
+  a:active,
+  button:active,
+  summary:active {
+    opacity: 0.62;
+    transition: opacity 60ms linear;
+  }
+
+  /* The card's own press treatment already reads; dimming it as well would
+     double up and look like a bug. */
+  .card a:active,
+  .card button:active {
+    opacity: 1;
+  }
+}
+
 ul,
 ol {
   list-style: none;
