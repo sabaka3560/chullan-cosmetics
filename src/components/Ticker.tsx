@@ -4,7 +4,7 @@ const ITEMS = [
   'Dermatologist tested',
   'Fragrance free',
   'Cruelty free',
-  'Built for men',
+  'Built for the Chullan',
 ];
 
 /**

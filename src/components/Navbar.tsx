@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useMotionValueEvent, useScroll } from 'framer-motion';
 import { Menu, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../commerce/CartProvider';
 
 const SOLID_AT = 24;
 const CLEAR_AT = 8;
@@ -17,6 +19,7 @@ const CLEAR_AT = 8;
 export function Navbar() {
   const { scrollY } = useScroll();
   const [solid, setSolid] = useState(false);
+  const { cart, open } = useCart();
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     // Hysteresis: without the two thresholds the nav strobes when someone
@@ -31,19 +34,23 @@ export function Navbar() {
           <button className="nav__burger" aria-label="Open menu">
             <Menu size={20} strokeWidth={1.6} />
           </button>
-          <a className="nav__link" href="#bestsellers">Shop</a>
-          <a className="nav__link" href="#detail">The Object</a>
-          <a className="nav__link" href="#story">Story</a>
+          <Link className="nav__link" to="/shop">Shop</Link>
+          <Link className="nav__link" to="/#detail">The Object</Link>
+          <Link className="nav__link" to="/#story">Story</Link>
         </div>
 
-        <a className="nav__wordmark" href="/" aria-label="Chullan, home">Chullan</a>
+        <Link className="nav__wordmark" to="/" aria-label="Chullan, home">Chullan</Link>
 
         <div className="nav__group nav__group--end">
-          <a className="nav__link" href="#">Account</a>
-          <button className="nav__bag" aria-label="Bag, 0 items">
+          <Link className="nav__link" to="/shipping">Shipping</Link>
+          <button
+            className="nav__bag"
+            onClick={open}
+            aria-label={`Bag, ${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'items'}`}
+          >
             <ShoppingBag size={18} strokeWidth={1.6} />
             Bag
-            <span className="nav__count">(0)</span>
+            <span className="nav__count">({cart.itemCount})</span>
           </button>
         </div>
       </div>

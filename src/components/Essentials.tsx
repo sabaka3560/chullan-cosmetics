@@ -1,10 +1,20 @@
+import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 import featuredImg from '../assets/featured_product.png';
 
+/**
+ * Every claim here is traceable to the pack copy in the 2026 catalogue.
+ *
+ * The previous list ("twelve-hour shine control", "no fragrance, no parabens,
+ * no talc") was written against placeholder products and contradicted the
+ * actual packs — the Finishing Spray states up to ten hours, and the free-from
+ * claims were never sourced from anywhere. Cosmetic claims on a storefront are
+ * regulated, so nothing goes on this list that isn't printed on a box.
+ */
 const POINTS = [
-  'Buildable coverage that never cakes',
-  'Twelve-hour shine control',
-  'No fragrance, no parabens, no talc',
+  'Finishing spray holds for up to ten hours',
+  'Moisturiser with Vitamin E, grape seed and carrot oil',
+  'Broad-spectrum SPF 50 that wears under make-up',
 ];
 
 export function Essentials() {
@@ -31,9 +41,9 @@ export function Essentials() {
               Essentials
             </h2>
             <p className="deck">
-              Three products. That's the entire routine. A foundation, a concealer
-              and a balm, formulated to work as one system so you never have to
-              learn a second one.
+              Eight products. Prep, face, set, skin — and a line built for men.
+              Formulated to work as one system, so you never have to learn a
+              second one.
             </p>
           </Reveal>
 
@@ -43,7 +53,7 @@ export function Essentials() {
                 <li key={point}>{point}</li>
               ))}
             </ul>
-            <a className="btn btn--secondary" href="#bestsellers">Shop the set</a>
+            <Link className="btn btn--secondary" to="/shop">Shop the set</Link>
           </Reveal>
         </div>
       </div>

@@ -3,24 +3,34 @@ import { Reveal } from './Reveal';
 import { VIEWPORT_TALL } from '../motion/tokens';
 import { LazyBottleStage } from '../three/LazyBottleStage';
 
+/**
+ * TODO — CONFIRM WITH THE MANUFACTURER BEFORE LAUNCH.
+ *
+ * The original list described a soft-touch injection-moulded PP bottle with
+ * screen-printed white ink. The actual pack in the 2026 catalogue is tinted
+ * glass with a black pump and dark printing, so every one of those four specs
+ * was describing a product that does not exist.
+ *
+ * What is left below is only what can be read off the catalogue photographs and
+ * pack copy. Fill and pump-count figures in particular are the sort of claim a
+ * buyer measures you against, so they stay out until someone confirms them.
+ */
 const SPECS = [
   {
-    label: 'Soft-touch shell',
-    value:
-      'Injection-moulded PP under a matte elastomer coat. No gloss, no fingerprints, no shine-through.',
-  },
-  {
-    label: 'Airless pump',
-    value:
-      'Vacuum-sealed dispensing keeps the formula stable to the last dose. Ships with a locking collar.',
-  },
-  {
     label: '30ml / 1.0 fl oz',
-    value: 'Roughly 220 pumps. Sized to clear cabin baggage limits without decanting.',
+    value: 'The same fill across Foundation, Concealer and the Primer for men.',
   },
   {
-    label: 'Screen-printed',
-    value: 'Two-pass white ink, cured — not a wrap label. It will not peel in a wet bathroom.',
+    label: 'Tinted glass',
+    value: 'Weighted glass body with a lacquered black pump and over-cap.',
+  },
+  {
+    label: 'Printed direct',
+    value: 'Pack copy prints onto the glass itself rather than onto a wrap label.',
+  },
+  {
+    label: 'Shade-matched',
+    value: 'Each bottle is tinted to its own shade, so the pack reads as the product.',
   },
 ];
 
@@ -48,11 +58,11 @@ export function Showcase() {
           <div>
             <Reveal delay={0.08}>
               <p className="eyebrow eyebrow--rule">The object</p>
-              <h2 className="h2 section-head__title">Engineered in detail</h2>
+              <h2 className="h2 section-head__title">Designed for the Chullan</h2>
               <p className="deck section-head__deck">
-                Every part of the bottle is drawn to the same brief as the formula
-                inside it. Turn it over — this is the actual geometry, rendered live
-                in your browser, not a spin of photographs.
+                Every part of the bottle is crafted to match the elegance of a true
+                South Indian gentleman. Turn it over — this is the actual geometry,
+                rendered live in your browser, not a spin of photographs.
               </p>
             </Reveal>
 

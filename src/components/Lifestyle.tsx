@@ -39,12 +39,12 @@ export function Lifestyle() {
 
       <div className="band__inner">
         <Reveal viewport={VIEWPORT_TALL}>
-          <p className="eyebrow">Built for men</p>
+          <p className="eyebrow">Built for the Chullan</p>
           <h2 className="display-l band__title">Nobody should be able to tell</h2>
           <p className="deck">
-            Formulated with precision, tested without compromise. The point isn't
-            to look like you're wearing makeup — it's to look like you slept eight
-            hours when you slept four.
+            Crafted for the inherently handsome, without compromise. The point isn't
+            to look like you're wearing makeup — it's to elevate that natural South
+            Indian charm effortlessly.
           </p>
         </Reveal>
       </div>

@@ -1,9 +1,18 @@
 import { m } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { Reveal, revealChild, revealGroup } from './Reveal';
 import { VIEWPORT } from '../motion/tokens';
-import { products } from '../data/products';
+import { bestSellers, products } from '../data/products';
+
+/**
+ * Created once at module scope, never inline in the render. `m.create` returns a
+ * new component type on every call, so building it during render would give
+ * React a different type each pass and remount the tile — losing its animation
+ * state and re-running the reveal on every parent update.
+ */
+const MotionLink = m.create(Link);
 
 export function BestSellers() {
   return (
@@ -14,10 +23,10 @@ export function BestSellers() {
             <p className="eyebrow eyebrow--rule">Shop the range</p>
             <h2 className="h2 section-head__title">Best Sellers</h2>
           </div>
-          <a className="btn--ghost" href="#">
+          <Link className="btn--ghost" to="/shop">
             Shop all
             <ArrowRight className="icon" size={15} strokeWidth={2} />
-          </a>
+          </Link>
         </Reveal>
 
         {/*
@@ -33,21 +42,23 @@ export function BestSellers() {
           whileInView="show"
           viewport={VIEWPORT}
         >
-          {products.map((product) => (
+          {bestSellers.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
 
-          <m.a variants={revealChild} className="tile" href="#">
+          <MotionLink variants={revealChild} className="tile" to="/shop">
             <span className="eyebrow">The full range</span>
             <div>
-              <span className="tile__count">12</span>
+              {/* Read off the catalog — a hand-typed count goes stale the first
+                  time a SKU is added and nobody thinks to edit the tile. */}
+              <span className="tile__count">{products.length}</span>
               <p className="card__size" style={{ marginTop: 14 }}>Products</p>
             </div>
             <span className="btn--ghost" style={{ color: 'inherit' }}>
               Shop all
               <ArrowRight className="tile__arrow" size={15} strokeWidth={2} />
             </span>
-          </m.a>
+          </MotionLink>
         </m.div>
       </div>
     </section>

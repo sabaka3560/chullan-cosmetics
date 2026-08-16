@@ -1,8 +1,12 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { Rating } from './Rating';
 import { LazyBottleStage } from '../three/LazyBottleStage';
 import { revealChild } from './Reveal';
-import type { Product } from '../data/products';
+import { useCart } from '../commerce/CartProvider';
+import { formatMoney } from '../commerce/money';
+import type { Product } from '../commerce/types';
 
 /**
  * One card renders a photograph, one renders a live WebGL bottle — but they
@@ -12,11 +16,31 @@ import type { Product } from '../data/products';
  * That sameness is the entire point. The 3D piece has to read as another
  * product in the row, not as a demo bolted onto the page, so the only thing
  * that differs is what's inside the media box.
+ *
+ * The whole card is a link to the detail page, but there is only ONE anchor in
+ * the markup: the product name, stretched over the card with a pseudo-element.
+ * Wrapping the media in a second anchor to the same place would make every card
+ * announce itself twice to a screen reader and double the tab stops in the grid.
+ *
+ * Quick-add and the shade swatches sit above that stretched layer, so choosing
+ * a shade or adding to the bag never navigates by accident.
  */
 export function ProductCard({ product }: { product: Product }) {
+  const { add, lastAdded } = useCart();
+
+  // Holds the SKU and derives the variant, for the same reason the detail page
+  // does: a stored variant object can outlive the product it belongs to, and
+  // the failure mode is a card that displays one product and adds another.
+  const [selectedSku, setSelectedSku] = useState<string | null>(null);
+  const selected =
+    product.variants.find((variant) => variant.sku === selectedSku) ?? product.variants[0];
+
+  const hasChoice = product.variants.length > 1;
+  const justAdded = lastAdded === selected.sku;
+
   return (
     <m.article variants={revealChild} className="card">
-      <a href="#" className="card__media" aria-label={product.name}>
+      <div className="card__media">
         {product.live ? (
           <>
             <span className="card__flag">
@@ -28,7 +52,7 @@ export function ProductCard({ product }: { product: Product }) {
           </>
         ) : (
           <img
-            src={product.image}
+            src={product.image ?? product.thumb}
             alt={product.name}
             width={1024}
             height={1024}
@@ -36,17 +60,59 @@ export function ProductCard({ product }: { product: Product }) {
             decoding="async"
           />
         )}
-        <span className="card__add">Add — ${product.price}</span>
-      </a>
+
+        <button
+          type="button"
+          className="card__add"
+          onClick={() => add(selected.sku)}
+          disabled={!selected.inStock}
+          /* The label carries the shade so the button is unambiguous out of
+             context, which is how a screen reader reaches it. */
+          aria-label={
+            hasChoice
+              ? `Add ${product.name}, ${selected.label}, to bag`
+              : `Add ${product.name} to bag`
+          }
+        >
+          {!selected.inStock
+            ? 'Sold out'
+            : justAdded
+              ? 'Added'
+              : `Add — ${formatMoney(product.priceMinor)}`}
+        </button>
+      </div>
 
       <div className="card__body">
         <p className="eyebrow">{product.category}</p>
-        <h3 className="card__name">{product.name}</h3>
+        <h3 className="card__name">
+          <Link to={`/product/${product.id}`} className="card__link">
+            {product.name}
+          </Link>
+        </h3>
         <div className="card__meta">
-          <span className="card__price">${product.price}</span>
+          <span className="card__price">{formatMoney(product.priceMinor)}</span>
           <Rating value={product.rating} count={product.reviews} />
         </div>
         <span className="card__size">{product.size}</span>
+
+        {hasChoice && (
+          <div className="swatches" role="group" aria-label={`${product.name} shade`}>
+            {product.variants.map((variant) => (
+              <button
+                key={variant.sku}
+                type="button"
+                className="swatch"
+                data-selected={variant.sku === selected.sku}
+                disabled={!variant.inStock}
+                style={{ '--swatch': variant.swatch } as React.CSSProperties}
+                onClick={() => setSelectedSku(variant.sku)}
+                aria-pressed={variant.sku === selected.sku}
+                aria-label={variant.inStock ? variant.label : `${variant.label}, sold out`}
+              />
+            ))}
+            <span className="swatch__label">{selected.label}</span>
+          </div>
+        )}
       </div>
     </m.article>
   );

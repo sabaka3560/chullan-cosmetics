@@ -82,8 +82,8 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: T.body, ease: EASE.editorial }}
           >
-            Premium cosmetics engineered for the modern man. Weightless coverage,
-            zero shine, and nothing that looks like you're wearing anything at all.
+            Crafted for the inherently handsome. Weightless coverage,
+            zero shine, and undeniable South Indian charm that elevates your natural look.
           </m.p>
 
           <m.div

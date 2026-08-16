@@ -1,8 +1,20 @@
-const COLUMNS = [
-  { title: 'Shop', links: ['Foundation', 'Concealer', 'Blur Balm', 'The Set', 'Gift Cards'] },
-  { title: 'Support', links: ['Shade Finder', 'Shipping', 'Returns', 'Contact'] },
-  { title: 'Company', links: ['Our Story', 'Ingredients', 'Sustainability', 'Stockists'] },
-];
+import { Link } from 'react-router-dom';
+import { products } from '../data/products';
+import { policies } from '../data/policies';
+
+/**
+ * Every link here goes somewhere that exists.
+ *
+ * The previous columns advertised Gift Cards, a Shade Finder, Ingredients,
+ * Sustainability and Stockists — five pages that were never built, all pointing
+ * at `#`. A footer full of dead links costs more trust than a short one costs
+ * in perceived range, and on a storefront it is also the place buyers go
+ * looking for the returns policy before they order.
+ */
+const shopLinks = products.slice(0, 4).map((product) => ({
+  label: product.name,
+  to: `/product/${product.id}`,
+}));
 
 export function Footer() {
   return (
@@ -11,34 +23,53 @@ export function Footer() {
         <div className="footer__grid">
           <div>
             <p className="h3" style={{ color: 'var(--void-ink)' }}>
-              Engineered, not decorated.
+              Handsome, inside and out.
             </p>
             <p className="footer__blurb">
-              Premium matte cosmetics for the modern man. Made in India, shipped
-              worldwide.
+              Premium cosmetics for the inherently handsome. Crafted with pure
+              South Indian charm.
             </p>
           </div>
 
-          {COLUMNS.map((col) => (
-            <nav className="footer__col" key={col.title} aria-label={col.title}>
-              <h4>{col.title}</h4>
-              <ul>
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#">{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          <nav className="footer__col" aria-label="Shop">
+            <h4>Shop</h4>
+            <ul>
+              {shopLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to}>{link.label}</Link>
+                </li>
+              ))}
+              <li>
+                <Link to="/shop">The full range</Link>
+              </li>
+            </ul>
+          </nav>
+
+          <nav className="footer__col" aria-label="Support">
+            <h4>Support</h4>
+            <ul>
+              {policies.map((policy) => (
+                <li key={policy.slug}>
+                  <Link to={`/${policy.slug}`}>{policy.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
         <div className="footer__bar">
           <span>© {new Date().getFullYear()} Chullan. All rights reserved.</span>
           <nav>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Instagram</a>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+            {/* External, so it stays an anchor — and rel guards the opener. */}
+            <a
+              href="https://instagram.com/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Instagram
+            </a>
           </nav>
         </div>
       </div>

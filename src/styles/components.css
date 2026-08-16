@@ -1174,3 +1174,690 @@
     align-items: flex-start;
   }
 }
+
+/* ============================================================================
+   Shade swatches
+   ========================================================================= */
+
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* A ring that sits outside the fill rather than a border, so selecting a shade
+   can't change the swatch's size and nudge the row. */
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--swatch, var(--bone-2));
+  box-shadow:
+    inset 0 0 0 1px var(--hair-firm),
+    0 0 0 1px transparent;
+  transition: box-shadow var(--d-control) var(--ease-inout);
+}
+
+.swatch[data-selected='true'] {
+  box-shadow:
+    inset 0 0 0 1px var(--hair-firm),
+    0 0 0 1px var(--paper),
+    0 0 0 2px var(--ink);
+}
+
+.swatch:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.swatch__label {
+  margin-left: 4px;
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Cart drawer
+   ========================================================================= */
+
+/* Above the nav (101) — the nav must not float over the panel or its scrim. */
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.drawer__scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: rgba(11, 11, 11, 0.46);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+
+.drawer__panel {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(432px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--bone);
+  /* dvh, never vh — the panel must not sit under the mobile URL bar. */
+  height: 100dvh;
+  box-shadow: -24px 0 60px rgba(11, 11, 11, 0.18);
+}
+
+.drawer__panel:focus-visible {
+  outline: none;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px var(--gutter);
+  border-bottom: 1px solid var(--hair);
+}
+
+.drawer__count {
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.drawer__close {
+  display: inline-flex;
+  color: var(--ink-3);
+  transition: color var(--d-micro) var(--ease-inout);
+}
+
+.drawer__close:hover {
+  color: var(--ink);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+
+.drawer__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 var(--gutter) 12vh;
+}
+
+.drawer__empty-note {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  max-width: 30ch;
+  margin-bottom: 10px;
+}
+
+/* ── Lines ────────────────────────────────────────────────────────────── */
+
+.drawer__lines {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px var(--gutter);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 18px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--hair-soft);
+}
+
+.line:last-child {
+  border-bottom: 0;
+}
+
+.line__thumb {
+  width: 72px;
+  height: 90px;
+  object-fit: cover;
+  background: var(--paper);
+}
+
+.line__name {
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.line__variant {
+  margin-top: 4px;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.line__size {
+  margin-top: 2px;
+  font-size: var(--t-micro);
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.line__controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  box-shadow: inset 0 0 0 1px var(--hair-firm);
+}
+
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--ink-2);
+  transition: background-color var(--d-micro) var(--ease-inout);
+}
+
+.stepper button:hover {
+  background: rgba(17, 17, 17, 0.05);
+}
+
+.stepper span {
+  min-width: 26px;
+  text-align: center;
+  font-size: var(--t-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.line__remove {
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+  transition:
+    color var(--d-micro) var(--ease-inout),
+    text-decoration-color var(--d-micro) var(--ease-inout);
+}
+
+.line__remove:hover {
+  color: var(--ink);
+  text-decoration-color: var(--hair-loud);
+}
+
+.line__price {
+  font-size: var(--t-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+
+.drawer__foot {
+  padding: 22px var(--gutter) calc(22px + env(safe-area-inset-bottom));
+  background: var(--bone-2);
+  border-top: 1px solid var(--hair);
+}
+
+.drawer__ship {
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.drawer__ship--met {
+  color: var(--ink);
+}
+
+.drawer__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.drawer__total-value {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 88, 'wght' 600;
+  font-size: var(--t-h3);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.drawer__note {
+  margin-top: 6px;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.drawer__error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(17, 17, 17, 0.05);
+  box-shadow: inset 0 0 0 1px var(--hair-firm);
+  font-size: var(--t-small);
+  color: var(--ink);
+}
+
+.drawer__checkout {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.drawer__checkout:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* The add bar is a button now, so it needs the disabled affordance the anchor
+   never had. */
+.card__add:disabled {
+  cursor: not-allowed;
+  color: var(--ink-3);
+}
+
+@media (max-width: 560px) {
+  .drawer__panel {
+    width: 100%;
+  }
+
+  .line {
+    grid-template-columns: 60px 1fr auto;
+    gap: 14px;
+  }
+
+  .line__thumb {
+    width: 60px;
+    height: 75px;
+  }
+}
+
+/* ── Delivery check ───────────────────────────────────────────────────── */
+
+.delivery {
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.delivery__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.delivery input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  padding: 0 0 0 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--hair-loud);
+  border-radius: 0;
+  /* Exactly 16px — anything smaller triggers iOS zoom-on-focus. */
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  transition: border-color var(--d-control) var(--ease-inout);
+}
+
+.delivery input::placeholder {
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+}
+
+.delivery input:focus {
+  border-bottom-color: var(--ink);
+}
+
+.delivery__submit {
+  flex: none;
+  height: 42px;
+  padding-inline: 16px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--hair-loud);
+  transition:
+    box-shadow var(--d-control) var(--ease-inout),
+    background-color var(--d-control) var(--ease-inout);
+}
+
+.delivery__submit:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px var(--ink);
+  background: rgba(17, 17, 17, 0.04);
+}
+
+.delivery__submit:disabled {
+  color: var(--ink-3);
+  cursor: wait;
+}
+
+.delivery__msg {
+  margin-top: 10px;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.delivery__msg--error {
+  color: var(--ink);
+}
+
+/* ============================================================================
+   Card link — stretched over the whole card from the product name
+   ========================================================================= */
+
+.card {
+  position: relative;
+}
+
+.card__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Below the add bar (3) and the swatches (2), above the media. */
+  z-index: 1;
+}
+
+.card__name .card__link {
+  transition: opacity var(--d-micro) var(--ease-inout);
+}
+
+.card:hover .card__name .card__link {
+  opacity: 0.66;
+}
+
+/* Interactive controls have to out-rank the stretched layer or the whole card
+   navigates instead of adding to the bag. */
+.card .swatches {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================================
+   Range (shop) page
+   ========================================================================= */
+
+.range {
+  padding-block-start: calc(var(--nav-h) + var(--sec-y) * 0.7);
+}
+
+.range__count {
+  color: var(--ink-3);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.filter {
+  height: 38px;
+  padding-inline: 18px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--hair-firm);
+  transition:
+    box-shadow var(--d-control) var(--ease-inout),
+    background-color var(--d-control) var(--ease-inout),
+    color var(--d-control) var(--ease-inout);
+}
+
+.filter:hover {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.filter[data-active='true'] {
+  background: var(--ink);
+  color: var(--bone);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* The range grid holds eight cards, not three — it needs its own column count
+   rather than inheriting the landing page's row-of-four rhythm. */
+@media (min-width: 720px) {
+  .product-grid--range {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1080px) {
+  .product-grid--range {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================================
+   Product detail
+   ========================================================================= */
+
+.pdp {
+  padding-block-start: calc(var(--nav-h) + 28px);
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.crumbs a {
+  transition: color var(--d-micro) var(--ease-inout);
+}
+
+.crumbs a:hover {
+  color: var(--ink);
+}
+
+.crumbs span {
+  color: var(--ink);
+}
+
+.pdp__grid {
+  display: grid;
+  gap: clamp(2rem, 1rem + 4vw, 5rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .pdp__grid {
+    grid-template-columns: 1.05fr 1fr;
+  }
+
+  /* Sticky only where there is room beside it — on a narrow screen the media
+     stacks above the body and sticking it would pin the image over the copy. */
+  .pdp__body {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
+}
+
+.pdp__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  overflow: hidden;
+}
+
+.pdp__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pdp__line {
+  margin-bottom: 12px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.pdp__title {
+  margin-block: 14px 18px;
+}
+
+.pdp__meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pdp__price {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 88, 'wght' 600;
+  font-size: var(--t-h3);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.pdp__blurb {
+  margin-top: 22px;
+}
+
+.pdp__shades {
+  margin-top: 30px;
+}
+
+.pdp__shade-name {
+  color: var(--ink);
+}
+
+.swatch--lg {
+  width: 26px;
+  height: 26px;
+}
+
+.pdp__add {
+  width: 100%;
+  margin-top: 26px;
+}
+
+.pdp__specs {
+  margin-top: 30px;
+  border-top: 1px solid var(--hair);
+}
+
+.pdp__specs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hair-soft);
+}
+
+.pdp__specs dt {
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.pdp__specs dd {
+  font-size: var(--t-small);
+  color: var(--ink);
+  text-align: right;
+}
+
+.pdp .delivery {
+  margin-top: 28px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* ============================================================================
+   Policy / prose pages
+   ========================================================================= */
+
+.prose {
+  padding-block-start: calc(var(--nav-h) + var(--sec-y) * 0.7);
+}
+
+.prose__shell {
+  max-width: 760px;
+}
+
+.prose__section {
+  margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.prose__section h2 {
+  margin-bottom: 14px;
+}
+
+.prose__section p {
+  margin-top: 12px;
+  max-width: 68ch;
+}
+
+.prose__entity dl {
+  margin-top: 6px;
+  border-top: 1px solid var(--hair);
+}
+
+.prose__entity dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hair-soft);
+}
+
+.prose__entity dt {
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.prose__entity dd {
+  font-size: var(--t-small);
+  color: var(--ink);
+  text-align: right;
+}
+
+.prose__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+  margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  padding-top: 26px;
+  border-top: 1px solid var(--hair);
+}

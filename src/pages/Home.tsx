@@ -1,4 +1,4 @@
-import { Navbar } from '../components/Navbar';
+import { Layout } from '../components/Layout';
 import { Hero } from '../components/Hero';
 import { Ticker } from '../components/Ticker';
 import { BestSellers } from '../components/BestSellers';
@@ -7,7 +7,6 @@ import { Essentials } from '../components/Essentials';
 import { Lifestyle } from '../components/Lifestyle';
 import { Reviews } from '../components/Reviews';
 import { Newsletter } from '../components/Newsletter';
-import { Footer } from '../components/Footer';
 
 /**
  * Tonal rhythm, top to bottom:
@@ -32,23 +31,21 @@ import { Footer } from '../components/Footer';
  * Best Sellers (bone) → Showcase (paper) is a deliberate 11-point lift with no
  * rule between them: it reads as zooming into the product before the page cuts
  * back to black.
+ *
+ * The announce bar, nav and footer moved into `Layout` once there was more than
+ * one page — the rhythm above still starts at the hero.
  */
 export default function Home() {
   return (
-    <>
-      <p className="announce">Free shipping over $60 · 30-day returns</p>
-      <Navbar />
-      <main>
-        <Hero />
-        <Ticker />
-        <BestSellers />
-        <Showcase />
-        <Essentials />
-        <Lifestyle />
-        <Reviews />
-        <Newsletter />
-      </main>
-      <Footer />
-    </>
+    <Layout>
+      <Hero />
+      <Ticker />
+      <BestSellers />
+      <Showcase />
+      <Essentials />
+      <Lifestyle />
+      <Reviews />
+      <Newsletter />
+    </Layout>
   );
 }
