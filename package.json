@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:mobile": "playwright test tests/e2e/mobile.spec.ts",
+    "test:ui": "playwright test tests/e2e/consistency.spec.ts",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -20,6 +24,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -27,6 +32,7 @@
     "@vitejs/plugin-react": "^4.3.3",
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9"
   }
 }

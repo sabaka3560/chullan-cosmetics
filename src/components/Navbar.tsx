@@ -3,6 +3,7 @@ import { useMotionValueEvent, useScroll } from 'framer-motion';
 import { Menu, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../commerce/CartProvider';
+import { MobileMenu } from './MobileMenu';
 
 const SOLID_AT = 24;
 const CLEAR_AT = 8;
@@ -19,6 +20,7 @@ const CLEAR_AT = 8;
 export function Navbar() {
   const { scrollY } = useScroll();
   const [solid, setSolid] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { cart, open } = useCart();
 
   useMotionValueEvent(scrollY, 'change', (y) => {
@@ -28,10 +30,16 @@ export function Navbar() {
   });
 
   return (
+    <>
     <header className="nav" data-state={solid ? 'solid' : 'clear'}>
       <div className="shell nav__inner">
         <div className="nav__group nav__group--start">
-          <button className="nav__burger" aria-label="Open menu">
+          <button
+            className="nav__burger"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
             <Menu size={20} strokeWidth={1.6} />
           </button>
           <Link className="nav__link" to="/shop">Shop</Link>
@@ -55,5 +63,8 @@ export function Navbar() {
         </div>
       </div>
     </header>
+
+    <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }

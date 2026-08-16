@@ -1,4 +1,4 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Reveal } from '../components/Reveal';
 import { legalEntity, policies, policyBySlug } from '../data/policies';
@@ -7,10 +7,15 @@ import { legalEntity, policies, policyBySlug } from '../data/policies';
  * One component for all four policy pages — they differ only in content, and
  * four near-identical page files would drift apart the first time one of them
  * gets a layout fix.
+ *
+ * The slug arrives as a prop rather than from `useParams`. The routes are
+ * enumerated as static paths (`/shipping`) so they cannot swallow unknown URLs
+ * ahead of the 404 route — and a static path declares no params, so `useParams`
+ * returned an empty object and every policy page silently redirected home.
+ * Passing it explicitly makes the route and the component agree by construction.
  */
-export default function Policy() {
-  const { slug } = useParams();
-  const policy = slug ? policyBySlug(slug) : undefined;
+export default function Policy({ slug }: { slug: string }) {
+  const policy = policyBySlug(slug);
 
   if (!policy) return <Navigate to="/" replace />;
 

@@ -33,7 +33,11 @@ export default function App() {
           {/* Enumerated rather than a `/:slug` catch-all, which would sit above
               the 404 route and turn every mistyped URL into a policy page. */}
           {policies.map((policy) => (
-            <Route key={policy.slug} path={`/${policy.slug}`} element={<Policy />} />
+            <Route
+              key={policy.slug}
+              path={`/${policy.slug}`}
+              element={<Policy slug={policy.slug} />}
+            />
           ))}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -697,7 +697,14 @@
 
 .showcase__grid {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  /*
+    minmax(0, ...) rather than a bare fr. A bare `1fr` is `minmax(auto, 1fr)`,
+    and that `auto` floor is min-content — so one un-shrinkable child drags the
+    whole track wider than its container and the section overflows the page.
+    The newsletter hit exactly this: its input-plus-button row has a 346px
+    min-content, which pushed a 320px column to 346px on a 360px screen.
+  */
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: clamp(2rem, 5vw, 5.5rem);
   align-items: center;
 }
@@ -925,7 +932,8 @@
 
 .newsletter {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* See `.showcase__grid` — a bare `1fr` floors at min-content and overflows. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(2rem, 6vw, 6rem);
   align-items: center;
 }
@@ -1119,7 +1127,7 @@
 @media (max-width: 1080px) {
   .showcase__grid,
   .newsletter {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .showcase__stage {
@@ -1182,6 +1190,7 @@
 .swatches {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
 }
@@ -1189,6 +1198,8 @@
 /* A ring that sits outside the fill rather than a border, so selecting a shade
    can't change the swatch's size and nudge the row. */
 .swatch {
+  position: relative;
+  flex: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -1860,4 +1871,278 @@
   margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
   padding-top: 26px;
   border-top: 1px solid var(--hair);
+}
+
+/* ============================================================================
+   Mobile menu
+   ========================================================================= */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  /* Above the drawer's scrim peer but below nothing else — the two never open
+     together, and if they somehow did, the menu is the one you escaped to. */
+  z-index: 210;
+}
+
+.menu__scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: rgba(11, 11, 11, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.menu__panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(360px, 86%);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--void);
+  color: var(--void-ink-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 24px 0 60px rgba(11, 11, 11, 0.3);
+}
+
+.menu__panel:focus-visible {
+  outline: none;
+}
+
+.menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px var(--gutter);
+  border-bottom: 1px solid var(--hair-void);
+}
+
+.menu__mark {
+  font-size: 1.25rem;
+  color: var(--void-ink);
+}
+
+.menu__close {
+  display: grid;
+  place-items: center;
+  /* Full 44px target from the start — this control only ever exists on touch. */
+  width: 44px;
+  height: 44px;
+  margin-right: -12px;
+  color: var(--void-ink-2);
+}
+
+.menu__nav {
+  padding: 26px var(--gutter) calc(40px + env(safe-area-inset-bottom));
+}
+
+.menu__primary {
+  display: block;
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 88, 'wght' 600;
+  font-size: var(--t-h2);
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--void-ink);
+  padding-block: 10px;
+}
+
+.menu__label {
+  margin-top: 30px;
+  margin-bottom: 4px;
+  color: var(--void-ink-4);
+}
+
+.menu__list li a {
+  display: block;
+  /* 44px min via padding rather than a height, so a wrapped two-line product
+     name grows the target instead of overflowing a fixed box. */
+  padding-block: 11px;
+  min-height: 44px;
+  font-size: var(--t-body);
+  color: var(--void-ink-2);
+  transition: color var(--d-micro) var(--ease-inout);
+}
+
+.menu__list li a:hover {
+  color: var(--void-ink);
+}
+
+/* ============================================================================
+   Mobile corrections
+   ========================================================================= */
+
+/*
+  The full range must NOT inherit the landing page's horizontal rail.
+  A snapping rail is right for a promoted row of three — it is actively hostile
+  for a browse page, where it turns the entire catalogue into a sideways swipe
+  and hides how much there is. Browsing wants a grid you can scan down.
+*/
+@media (max-width: 559px) {
+  .product-grid--range {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--grid-gap) * 1.5) var(--grid-gap);
+    overflow-x: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    scroll-snap-type: none;
+  }
+
+  .product-grid--range > * {
+    flex: initial;
+  }
+}
+
+/* A long product name must not push the breadcrumb wider than the screen. */
+.crumbs {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+/*
+  Touch targets.
+
+  Scoped to `hover: none` rather than a width breakpoint: the constraint is the
+  input device, not the viewport. A small laptop with a mouse does not need
+  44px controls, and a large tablet with no mouse very much does.
+
+  44px is the Apple HIG figure and WCAG 2.5.5 AAA. Several controls below were
+  built at mouse sizes — 18px shade swatches, 30px quantity steppers — which are
+  precise enough with a cursor and a coin-flip with a thumb.
+*/
+@media (hover: none) {
+  .nav__burger {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-left: -12px;
+  }
+
+  /* The wordmark and the bag are 18px tall at their type size. They are the two
+     most-tapped controls on the site and both sat well under the minimum. */
+  .nav__wordmark,
+  .nav__bag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Underlined text CTAs — "Shop all", "See it in 3D". Padding rather than a
+     height, so the underline stays on the text baseline where it belongs. */
+  .btn--ghost {
+    min-height: 44px;
+    padding-block: 10px 13px;
+  }
+
+  .crumbs a,
+  .crumbs span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Short labels — "Home", "Terms", "Privacy" — clear 44px vertically on their
+     line box but are only 34-40px wide at this type size. A target has to pass
+     in both axes, so these get a floor on width too. */
+  .crumbs a,
+  .crumbs span,
+  .footer__bar nav a,
+  .prose__nav .btn--ghost {
+    min-width: 44px;
+  }
+
+  .filter {
+    height: 44px;
+  }
+
+  /*
+    The swatch becomes a real 44px box and the coloured dot is painted into its
+    padding via `background-clip: content-box`.
+
+    An earlier attempt kept the 28px box and expanded the target with a
+    negative-inset pseudo-element. That works for a thumb but is invisible to
+    `getBoundingClientRect`, so it cannot be verified — and an accessibility fix
+    no test can see is one refactor away from silently disappearing. Sizing the
+    element itself means the measurement and the reality are the same number.
+
+    `flex: none` is the other half: inside a 150px card on the range grid, three
+    shrinkable swatches were being squeezed to 6px wide.
+  */
+  .swatches {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .swatch,
+  .swatch--lg {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 9px;
+    background-clip: content-box;
+    /* The ring moves to the pseudo-element so it hugs the dot, not the box. */
+    box-shadow: none;
+  }
+
+  .swatch::before {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--hair-firm);
+  }
+
+  .swatch[data-selected='true'] {
+    box-shadow: none;
+  }
+
+  .swatch[data-selected='true']::before {
+    box-shadow:
+      inset 0 0 0 1px var(--hair-firm),
+      0 0 0 1px var(--paper),
+      0 0 0 2px var(--ink);
+  }
+
+  .stepper button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .drawer__close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -12px;
+  }
+
+  .line__remove {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .delivery__submit {
+    height: 44px;
+  }
+
+  .prose__nav {
+    gap: 18px 26px;
+  }
+
+  .prose__nav .btn--ghost {
+    min-height: 44px;
+  }
+
+  .footer__col ul li a,
+  .footer__bar nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
