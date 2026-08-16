@@ -160,15 +160,24 @@ test.describe('cross-page consistency', () => {
 });
 
 test.describe('the cart holds together', () => {
+  /*
+   * `load` rather than `networkidle` throughout this block.
+   *
+   * networkidle waits for the network to go quiet, which against a remote host
+   * serving a 700KB three.js chunk is latency-bound and blew the 60s budget
+   * when the suite was pointed at the deployed site — a red result for a cart
+   * that works fine. The assertions below already auto-retry, so waiting for
+   * `load` and letting `expect` poll is both faster and more honest about what
+   * is being tested.
+   */
+
   test('survives a reload', async ({ page }) => {
-    await page.goto('/shop');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/shop', { waitUntil: 'load' });
 
     await page.locator('.card__add').first().click();
     await expect(page.getByRole('button', { name: /^Bag, 1 item$/ })).toBeVisible();
 
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.reload({ waitUntil: 'load' });
 
     // The bag is persisted by SKU reference, so a reload must rebuild it from
     // the catalog rather than losing it.
@@ -176,12 +185,10 @@ test.describe('the cart holds together', () => {
   });
 
   test('follows the buyer across pages', async ({ page }) => {
-    await page.goto('/shop');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/shop', { waitUntil: 'load' });
     await page.locator('.card__add').first().click();
 
-    await page.goto('/shipping');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/shipping', { waitUntil: 'load' });
     await expect(page.getByRole('button', { name: /^Bag, 1 item$/ })).toBeVisible();
   });
 
@@ -189,16 +196,14 @@ test.describe('the cart holds together', () => {
     // The regression this exists for: the selected variant was held as an
     // object, and React Router reuses the component across product routes — so
     // the page could show one product while Add to bag sent another's SKU.
-    await page.goto('/product/foundation');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/product/foundation', { waitUntil: 'load' });
     await page.getByRole('button', { name: 'Add to bag' }).click();
 
     const drawer = page.getByRole('dialog', { name: 'Your bag' });
     await expect(drawer.locator('.line__name')).toHaveText('Foundation');
 
     await page.keyboard.press('Escape');
-    await page.goto('/product/primer-men');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/product/primer-men', { waitUntil: 'load' });
     await page.getByRole('button', { name: 'Add to bag' }).click();
 
     await expect(drawer.locator('.line__name').nth(1)).toHaveText('Primer');
