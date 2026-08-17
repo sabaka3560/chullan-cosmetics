@@ -11,7 +11,9 @@
     "test": "playwright test",
     "test:mobile": "playwright test tests/e2e/mobile.spec.ts",
     "test:ui": "playwright test tests/e2e/consistency.spec.ts",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:unit": "vitest run",
+    "test:all": "vitest run && playwright test"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -29,6 +31,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.4",
+    "@vercel/node": "^5.10.1",
     "@vitejs/plugin-react": "^4.3.3",
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",

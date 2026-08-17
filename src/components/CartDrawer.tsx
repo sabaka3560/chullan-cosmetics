@@ -217,7 +217,9 @@ export function CartDrawer() {
                 </ul>
 
                 <footer className="drawer__foot">
-                  <DeliveryCheck weightGrams={cart.totalWeightGrams} />
+                  <DeliveryCheck
+                    lines={cart.lines.map((line) => ({ sku: line.variant.sku, qty: line.qty }))}
+                  />
 
                   {remaining > 0 ? (
                     <p className="drawer__ship">

@@ -35,11 +35,14 @@ export type ShippingProvider = {
   readonly id: string;
 
   /**
-   * Weight matters because serviceability is weight-banded — a courier that
-   * covers a pincode for 200g may not cover it for 5kg, so checking without the
-   * cart's actual weight produces an answer that can be wrong at checkout.
+   * Takes cart lines rather than a weight.
+   *
+   * Serviceability is weight-banded — a courier that covers a pincode for 200g
+   * may not for 5kg — so the weight has to be right. Deriving it server-side
+   * from the SKUs means the question asked is always about the parcel actually
+   * being sold, and there is no client-supplied number to get wrong or forge.
    */
-  check(pincode: string, weightGrams: number): Promise<DeliveryEstimate>;
+  check(pincode: string, lines: { sku: string; qty: number }[]): Promise<DeliveryEstimate>;
 };
 
 /** Thrown by the stub so the UI can show an honest state during the build. */

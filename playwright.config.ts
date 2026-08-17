@@ -32,6 +32,19 @@ export default defineConfig({
    */
   timeout: 60_000,
   fullyParallel: true,
+
+  /*
+   * Two workers, not the default half-your-cores.
+   *
+   * Each worker drives a browser rendering WebGL through software
+   * rasterisation, which is CPU-bound rather than IO-bound, so more workers
+   * past this point make every worker slower rather than the suite faster. At
+   * three, on a machine also running a browser with real tabs open, a
+   * `mouse.move` took two and a half minutes and ten tests failed on timeouts
+   * that all passed single-threaded — failures that look exactly like
+   * regressions and are not.
+   */
+  workers: 2,
   reporter: process.env.CI ? 'github' : 'list',
 
   use: {

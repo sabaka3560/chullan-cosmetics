@@ -160,7 +160,7 @@ export default function Product() {
                   </div>
                 </dl>
 
-                <DeliveryCheck weightGrams={product.weightGrams} />
+                <DeliveryCheck lines={[{ sku: selected.sku, qty: 1 }]} />
               </Reveal>
             </div>
           </div>

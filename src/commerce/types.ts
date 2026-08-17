@@ -65,7 +65,17 @@ export type Variant = {
   inStock: boolean;
 };
 
-export type Product = {
+/**
+ * A product's commerce facts — everything that decides what is sold and for how
+ * much. Deliberately excludes imagery, so this half can be read by a serverless
+ * function that has no way to resolve a Vite asset import.
+ *
+ * The split exists because the price a buyer is charged must be computed on the
+ * server from the same rows the page rendered from. Two copies of a price list
+ * eventually disagree, and the disagreement surfaces as a buyer being charged
+ * something other than what they saw.
+ */
+export type CatalogItem = {
   /** URL slug and React key. User-facing, so it reads as words. */
   id: string;
 
@@ -87,9 +97,25 @@ export type Product = {
   rating: number;
   reviews: number;
 
-  image?: string;
   /** Rendered live in WebGL instead of shipped as a photograph. */
   live?: boolean;
+
+  /**
+   * Packed shipping weight in grams, carton included — not the net fill weight
+   * on the label. A 30ml bottle is 30g of product and about 140g of glass,
+   * pump, carton and filler, and couriers bill the second number.
+   *
+   * Shiprocket bills off its own SKU record rather than this field. The copy
+   * lives here so the cart can show a delivery estimate before handoff.
+   */
+  weightGrams: number;
+
+  variants: Variant[];
+};
+
+/** A catalog item with its imagery resolved. Browser-side only. */
+export type Product = CatalogItem & {
+  image?: string;
 
   /**
    * Small flat image for cart lines. Required even for `live` products: a bag
@@ -98,20 +124,6 @@ export type Product = {
    * exactly where that limit gets hit and the hero canvas goes black.
    */
   thumb: string;
-
-  /**
-   * Packed shipping weight in grams, carton included — not the net fill weight
-   * on the label. A 30ml bottle is 30g of product and about 140g of glass,
-   * pump, carton and filler, and couriers bill the second number.
-   *
-   * Shiprocket bills off its own SKU record rather than this field. The copy
-   * lives here so the cart can show a delivery estimate before handoff, which
-   * is a pre-checkout concern and therefore ours. Treat the panel as the
-   * source of truth if the two ever disagree.
-   */
-  weightGrams: number;
-
-  variants: Variant[];
 };
 
 /**

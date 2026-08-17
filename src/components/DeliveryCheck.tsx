@@ -30,7 +30,7 @@ type State =
   | { status: 'done'; estimate: DeliveryEstimate }
   | { status: 'error'; message: string };
 
-export function DeliveryCheck({ weightGrams }: { weightGrams: number }) {
+export function DeliveryCheck({ lines }: { lines: { sku: string; qty: number }[] }) {
   const [pincode, setPincode] = useState('');
   const [state, setState] = useState<State>({ status: 'idle' });
 
@@ -51,7 +51,7 @@ export function DeliveryCheck({ weightGrams }: { weightGrams: number }) {
 
     setState({ status: 'checking' });
     try {
-      const estimate = await checkDelivery(pincode, weightGrams);
+      const estimate = await checkDelivery(pincode, lines);
       setState({ status: 'done', estimate });
     } catch (cause) {
       setState({

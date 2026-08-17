@@ -1,42 +1,48 @@
 import { ShippingNotConnectedError } from './types';
-import type { ShippingProvider } from './types';
+import type { DeliveryEstimate, ShippingProvider } from './types';
 
 export { ShippingNotConnectedError } from './types';
 export type { DeliveryEstimate, ShippingProvider } from './types';
 export { normalisePincode, validatePincode } from './pincode';
 
 /**
- * Stands in until Shiprocket's serviceability API is wired.
+ * Serviceability, via our own API route.
  *
- * It rejects rather than returning a plausible-looking estimate, and that is
- * the important part. A stub that answers "delivers by Tuesday" is a delivery
- * promise the business cannot keep, and the day it survives into production
- * nobody notices, because a wrong date looks exactly like a right one. An
- * error state is visibly unfinished, which is what an unfinished integration
- * should look like.
+ * The call goes to `/api/serviceability` rather than to Shiprocket directly,
+ * and it has to: Shiprocket authenticates with the email and password of an API
+ * user, which would be readable by anyone who opened devtools if it were called
+ * from here.
+ *
+ * The request carries SKUs and quantities, never a weight. Serviceability is
+ * weight-banded, so a client that supplied its own weight could ask about a
+ * lighter parcel than the one being sold and get an answer that does not hold
+ * at dispatch. The server derives weight from the catalog.
  */
-const stubProvider: ShippingProvider = {
-  id: 'stub',
-  async check(pincode, weightGrams) {
-    // eslint-disable-next-line no-console
-    console.info('[shipping] serviceability request', { pincode, weightGrams });
-    throw new ShippingNotConnectedError();
+const apiProvider: ShippingProvider = {
+  id: 'shiprocket',
+
+  async check(pincode, lines) {
+    const response = await fetch('/api/serviceability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pincode, lines }),
+    });
+
+    // 501 is the backend saying "no credentials configured". Surfaced as the
+    // not-connected state so the drawer says something true during the build
+    // rather than a generic failure.
+    if (response.status === 501) throw new ShippingNotConnectedError();
+
+    if (!response.ok) {
+      throw new Error(`Serviceability failed: ${response.status}`);
+    }
+
+    return (await response.json()) as DeliveryEstimate;
   },
 };
 
-/**
- * When the real provider lands this becomes a switch on an env var with the
- * stub as the fallback, so a misconfigured key fails visibly rather than
- * half-working. The call itself must be server-side: Shiprocket authenticates
- * with an email/password pair that mints a ~10-day JWT, and neither the
- * credentials nor the token can be allowed near the browser bundle.
- */
-function resolveProvider(): ShippingProvider {
-  return stubProvider;
-}
+export const shippingProvider = apiProvider;
 
-export const shippingProvider = resolveProvider();
-
-export function checkDelivery(pincode: string, weightGrams: number) {
-  return shippingProvider.check(pincode, weightGrams);
+export function checkDelivery(pincode: string, lines: { sku: string; qty: number }[]) {
+  return shippingProvider.check(pincode, lines);
 }

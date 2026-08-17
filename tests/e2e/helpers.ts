@@ -37,13 +37,16 @@ export async function renderWholePage(page: Page) {
   await page.waitForTimeout(600);
 
   /*
-   * Then wait for the animations themselves rather than guessing a duration.
-   * A fixed timeout is a bet on the slowest machine in the fleet, and WebKit
-   * kept losing it — a reveal still a few frames from settling reported 43px
-   * for a control that ends at 44.
+   * Then wait for the animations themselves rather than guessing a duration —
+   * but never unboundedly.
    *
-   * Infinite animations are excluded or this would never return: the idle float
-   * on the showcase stage repeats until someone touches it.
+   * Waiting on every `finished` promise deadlocked the whole suite. Framer
+   * keeps persistent drivers alive for spring motion values (the product card's
+   * hover tilt has two that idle from mount), and those never resolve, so
+   * `Promise.all` never returned and the check died at the test timeout.
+   *
+   * Racing against a cap gets the best of both: precise when things settle
+   * quickly, bounded when something is designed never to settle.
    */
   await page.evaluate(async () => {
     const settling = document
@@ -53,6 +56,10 @@ export async function renderWholePage(page: Page) {
         return Number.isFinite(iterations);
       })
       .map((a) => a.finished.catch(() => undefined));
-    await Promise.all(settling);
+
+    await Promise.race([
+      Promise.all(settling),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
   });
 }
