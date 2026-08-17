@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { m } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
 import { Reveal } from './Reveal';
 import { VIEWPORT_TALL } from '../motion/tokens';
@@ -41,18 +43,41 @@ const SPECS = [
  * onto it.
  */
 export function Showcase() {
+  const [held, setHeld] = useState(false);
+
   return (
     <section className="section section--lg section--paper" id="detail">
       <div className="shell">
         <div className="showcase__grid">
           <Reveal viewport={VIEWPORT_TALL}>
-            <div className="showcase__stage">
+            {/*
+              The idle float stops the moment someone takes hold of the bottle,
+              for the same reason the bottle's own idle spin does: the object
+              inside this box is draggable, and a container that keeps drifting
+              under the finger fights the gesture it is meant to invite.
+
+              It also means the element eventually comes to rest. An animation
+              with `repeat: Infinity` never settles, which costs compositor work
+              for as long as the page is open.
+            */}
+            <m.div
+              className="showcase__stage"
+              onPointerDown={() => setHeld(true)}
+              animate={held ? { y: 0 } : { y: [0, -15, 0] }}
+              transition={
+                held
+                  ? { duration: 0.4, ease: 'easeOut' }
+                  : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
+              }
+              style={{ position: 'relative' }}
+            >
+              <div className="showcase__glow" />
               <LazyBottleStage variant="showcase" className="card__stage" />
               <span className="showcase__badge">
                 <RotateCcw size={12} strokeWidth={2} />
                 Drag to rotate
               </span>
-            </div>
+            </m.div>
           </Reveal>
 
           <div>

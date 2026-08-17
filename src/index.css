@@ -38,8 +38,8 @@
   --hair-void-2: rgba(243, 241, 237, 0.28);
 
   /* ── Type ────────────────────────────────────────────────────────────── */
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
-  --font-text: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Syne', sans-serif;
+  --font-text: 'Manrope', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
 
   --t-display-xl: clamp(2.75rem, 1rem + 7.7778vw, 8rem);
@@ -255,30 +255,30 @@ li {
 
 .display-xl {
   font-size: var(--t-display-xl);
-  font-variation-settings: 'wdth' 82, 'wght' 700;
-  line-height: 0.86;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
 }
 
 .display-l {
   font-size: var(--t-display-l);
-  font-variation-settings: 'wdth' 85, 'wght' 700;
+  font-weight: 700;
   line-height: 0.92;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.03em;
 }
 
 .display-m {
   font-size: var(--t-display-m);
-  font-variation-settings: 'wdth' 88, 'wght' 600;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .h2 {
   font-size: var(--t-h2);
-  font-variation-settings: 'wdth' 90, 'wght' 600;
+  font-weight: 600;
   line-height: 1.06;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .h3 {
@@ -362,12 +362,10 @@ li {
 
 .wordmark {
   font-family: var(--font-display);
-  font-variation-settings: 'wdth' 82, 'wght' 700;
+  font-weight: 700;
   text-transform: uppercase;
-  /* Bold condensed caps close up on their own — tracking them out makes the
-     lockup read as a wide sans, which is the wrong voice. */
-  letter-spacing: -0.005em;
-  line-height: 0.86;
+  letter-spacing: 0.01em;
+  line-height: 0.9;
 }
 
 /* ============================================================================
@@ -458,13 +456,13 @@ li {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
-  /* An inset ring rather than a border, so hover can't change the box size and
-     there's no sub-pixel shimmer when the colour animates. */
-  box-shadow: inset 0 0 0 1px var(--ring);
+  /* An inset ring rather than a border, plus an outer drop shadow */
+  box-shadow: inset 0 0 0 1px var(--ring), 0 4px 14px 0 rgba(0,0,0,0.05);
   transition:
     background-color var(--d-control) var(--ease-inout),
     color var(--d-control) var(--ease-inout),
-    box-shadow var(--d-control) var(--ease-inout);
+    box-shadow var(--d-control) var(--ease-inout),
+    transform var(--d-control) var(--ease-inout);
 }
 
 .btn--sm {
@@ -481,6 +479,13 @@ li {
 
 .btn--primary:hover {
   background: #2a2a28;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: inset 0 0 0 1px var(--ring), 0 12px 30px rgba(0,0,0,0.2);
+}
+
+.btn--primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: inset 0 0 0 1px var(--ring), 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .btn--secondary {

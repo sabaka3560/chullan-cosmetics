@@ -123,11 +123,14 @@
 
 .nav__wordmark {
   font-family: var(--font-display);
-  font-variation-settings: 'wdth' 82, 'wght' 700;
+  font-weight: 700;
   font-size: clamp(1.125rem, 1.5vw, 1.4rem);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   line-height: 1;
+  border: 2px solid currentColor;
+  padding: 8px 16px;
+  border-radius: 0;
 }
 
 .nav__bag {
@@ -189,6 +192,17 @@
       rgba(6, 6, 8, 0.5) 100%
     ),
     linear-gradient(to top, rgba(6, 6, 8, 0.86) 0%, transparent 44%);
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(243, 241, 237, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(243, 241, 237, 0.04) 1px, transparent 1px);
+  background-size: 25% 25%;
 }
 
 .hero__inner {
@@ -311,21 +325,23 @@
 .ticker__item {
   display: inline-flex;
   align-items: center;
-  gap: 30px;
-  padding-inline: 18px;
-  font-size: var(--t-micro);
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  gap: 60px;
+  padding-inline: 30px;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 700;
+  letter-spacing: normal;
   text-transform: uppercase;
-  color: var(--void-ink-3);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--void-ink-2);
   white-space: nowrap;
 }
 
 .ticker__item::after {
   content: '';
-  width: 3px;
-  height: 3px;
-  background: var(--hair-void-2);
+  width: 12px;
+  height: 12px;
+  background: var(--void-ink-2);
 }
 
 @keyframes ticker-scroll {
@@ -370,30 +386,6 @@
   }
 }
 
-/* At 360px a 2-up grid gives 150px-wide product cards, which kills the page.
-   A snapping rail with a peek of the next card works instead. */
-@media (max-width: 559px) {
-  .product-grid {
-    display: flex;
-    overflow-x: auto;
-    gap: var(--grid-gap);
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
-    margin-inline: calc(var(--gutter) * -1);
-    padding-inline: var(--gutter);
-    scrollbar-width: none;
-  }
-
-  .product-grid::-webkit-scrollbar {
-    display: none;
-  }
-
-  .product-grid > * {
-    flex: 0 0 72vw;
-    scroll-snap-align: start;
-  }
-}
-
 /* ── Card ─────────────────────────────────────────────────────────────── */
 
 .card {
@@ -407,6 +399,7 @@
      template tell there is. */
   border: 1px solid var(--hair-soft);
   border-radius: 0;
+  overflow: hidden;
   translate: 0 var(--card-lift);
   box-shadow:
     0 1px 1px rgba(17, 17, 17, 0.03),
@@ -420,14 +413,10 @@
 
 .card:hover,
 .card:focus-within {
-  --card-lift: -3px;
-  border-color: var(--hair-firm);
-  /* Three layers: a 1px contact line, a mid ambient, a wide diffuse. That
-     separation is what distinguishes a real shadow from a blur. */
-  box-shadow:
-    0 1px 1px rgba(17, 17, 17, 0.04),
-    0 10px 22px -12px rgba(17, 17, 17, 0.14),
-    0 30px 60px -30px rgba(17, 17, 17, 0.16);
+  --card-lift: -4px;
+  border-color: var(--ink);
+  /* Brutalist hard offset shadow replacing the generic soft blur */
+  box-shadow: 4px 4px 0 0 var(--ink);
   /* … fast in. Symmetric hover timing reads as cheap. */
   transition-duration: var(--d-card-in), var(--d-card-in), var(--d-card-in);
 }
@@ -480,9 +469,9 @@
 }
 
 .card__flag i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
   background: var(--ink);
   animation: pulse 2.4s var(--ease-inout) infinite;
 }
@@ -1095,16 +1084,15 @@
   height: 0.78em;
   padding-inline: var(--gutter);
   overflow: hidden;
-  font-size: min(19vw, 300px);
+  font-size: min(14vw, 220px);
 }
 
 .footer__mark span {
   display: block;
   font-family: var(--font-display);
-  font-variation-settings: 'wdth' 82, 'wght' 700;
   font-size: 1em;
   line-height: 0.8;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   text-transform: uppercase;
   color: var(--void-ink);
 }
@@ -1131,9 +1119,45 @@
   }
 
   .showcase__stage {
-    max-width: 560px;
+    /*
+      `aspect-ratio: 1 / 1` on the base rule sizes height from width. Adding a
+      definite `height: 100vh` here inverted that: height became the driver and
+      the ratio computed the *width* from it, so on a 360x740 phone a 320px
+      column got a 740px-wide stage and the whole page gained 400px of
+      horizontal scroll.
+
+      `aspect-ratio: auto` hands sizing back to the normal direction — width
+      from the column, height from the clamp below — which keeps the tall
+      mobile stage the rule was written for without the ratio fighting it.
+    */
+    aspect-ratio: auto;
     width: 100%;
-    margin-inline: auto;
+    min-height: 520px;
+    height: min(100vh, 800px);
+  }
+
+  .showcase__glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /*
+      `60vh` was a viewport-*height* unit driving a width. On a 360x740 phone
+      that resolves to 444px inside a ~320px column, so the glow pushed ~62px
+      past each edge and gave the whole homepage a horizontal scroll.
+      Portrait screens are exactly where vh-for-width goes wrong, because
+      height is much larger than width.
+
+      The stage is square, so sizing off its own width keeps the proportion the
+      design wanted and can never exceed the container.
+    */
+    width: min(60vh, 100%);
+    aspect-ratio: 1;
+    height: auto;
+    background: radial-gradient(circle, rgba(17,17,17,0.06) 0%, rgba(17,17,17,0) 70%);
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
   }
 
   .split {
@@ -1202,12 +1226,11 @@
   flex: none;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--swatch, var(--bone-2));
-  box-shadow:
-    inset 0 0 0 1px var(--hair-firm),
-    0 0 0 1px transparent;
-  transition: box-shadow var(--d-control) var(--ease-inout);
+  box-shadow: 0 0 0 1px var(--hair-firm);
+  transition: box-shadow var(--d-control) var(--ease-out),
+              transform var(--d-control) var(--ease-out);
 }
 
 .swatch[data-selected='true'] {

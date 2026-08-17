@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { m } from 'framer-motion';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { formatMoney } from '../commerce/money';
@@ -14,14 +15,19 @@ import { FREE_SHIPPING_THRESHOLD_MINOR } from '../commerce/policy';
  */
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <m.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+    >
       <p className="announce">
         Free shipping over {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)} · 30-day returns
       </p>
       <Navbar />
       <main>{children}</main>
       <Footer />
-    </>
+    </m.div>
   );
 }
 

@@ -1,6 +1,6 @@
 import { m, useReducedMotion } from 'framer-motion';
-import { MaskedLine } from './Reveal';
-import { DUR, EASE } from '../motion/tokens';
+import { SplitText } from './Reveal';
+import { EASE } from '../motion/tokens';
 import heroImg from '../assets/hero_product.png';
 
 /**
@@ -42,11 +42,16 @@ export function Hero() {
           what makes it read as a camera settling rather than a page loading. */}
       <m.div
         className="hero__media"
-        initial={{ scale: reduced ? 1 : 1.08, opacity: 0 }}
+        initial={{ scale: reduced ? 1 : 1.15, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{
-          scale: { duration: DUR.ambient, ease: EASE.entrance },
-          opacity: { duration: 1, ease: 'linear' },
+          /* Ken Burns. 6s rather than 15s: while the hero image is still
+             resizing it keeps producing new largest-contentful-paint
+             candidates, so a 15s drift reported an LCP of ~15.7s against a
+             2.5s "good" threshold. Six seconds reads the same and settles well
+             inside the window. */
+          scale: { duration: 6, ease: 'easeOut' },
+          opacity: { duration: 1.2, ease: 'linear' },
         }}
       >
         <img
@@ -59,6 +64,7 @@ export function Hero() {
         />
       </m.div>
       <div className="hero__scrim" />
+      <div className="hero__grid" />
 
       <div className="shell hero__inner">
         <div className="hero__copy">
@@ -71,9 +77,11 @@ export function Hero() {
             Introducing Chullan
           </m.p>
 
-          <h1 className="display-xl hero__title">
-            <MaskedLine delay={T.line1}>Pure.</MaskedLine>
-            <MaskedLine delay={T.line2}>Impact.</MaskedLine>
+          {/* The wording lives here because SplitText renders one span per
+              letter and hides them from assistive tech. See `SplitText`. */}
+          <h1 className="display-xl hero__title" aria-label="Pure. Impact.">
+            <SplitText delay={T.line1}>Pure.</SplitText>
+            <SplitText delay={T.line2}>Impact.</SplitText>
           </h1>
 
           <m.p

@@ -15,6 +15,36 @@ import { renderWholePage } from './helpers';
  * truth.
  */
 
+/**
+ * The intro overlay must never gate the page behind it.
+ *
+ * It did: routes were rendered only after the sequence finished, so the load
+ * event fired at ~250ms and the screen stayed black for another 4.5s — on every
+ * load, including a policy URL pasted into an onboarding form. Overlaying it
+ * instead is visually identical and costs nothing.
+ *
+ * Deliberately asserted on a fresh context per route, because the intro is now
+ * once-per-session: a test that reuses a warmed session would skip the overlay
+ * entirely and prove nothing.
+ */
+test.describe('content paints immediately', () => {
+  for (const route of ROUTES) {
+    test(`on ${route.name}, without waiting for the intro`, async ({ browser }) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      await page.goto(route.path, { waitUntil: 'load' });
+      // 2s is generous for a static build and still far under the 3.5-4.8s the
+      // blocking version cost.
+      await expect(page.locator('#root > *:not([data-intro])')).toBeAttached({
+        timeout: 2000,
+      });
+
+      await context.close();
+    });
+  }
+});
+
 for (const route of ROUTES) {
   test.describe(route.name, () => {
     test('never scrolls horizontally', async ({ page }) => {
@@ -133,6 +163,21 @@ test.describe('touch targets', () => {
           .filter((el) => {
             const style = getComputedStyle(el);
             if (style.visibility === 'hidden' || style.display === 'none') return false;
+
+            /*
+             * `checkVisibility` with `opacityProperty` also accounts for an
+             * *ancestor* faded to zero, which `getComputedStyle(el).opacity`
+             * cannot see. The scroll reveals wrap whole blocks and animate both
+             * opacity and scale, so a section that has not revealed yet reports
+             * its controls at 0.96 scale — 42px for a box that settles at 44.
+             * Measuring those was measuring something nobody can tap.
+             */
+            if (el.checkVisibility && !el.checkVisibility({
+              opacityProperty: true,
+              visibilityProperty: true,
+              contentVisibilityAuto: true,
+            })) return false;
+
             const rect = el.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return false;
 

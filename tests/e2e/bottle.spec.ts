@@ -38,8 +38,14 @@ test.setTimeout(150_000);
 /** The stage is lazy-mounted behind an IntersectionObserver. */
 async function openShowcase(page: import('@playwright/test').Page) {
   await page.goto('/', { waitUntil: 'load' });
-  // The outer container always exists; the inner one only after the chunk lands.
-  await page.locator('.showcase__stage').scrollIntoViewIfNeeded();
+
+  // Scrolled via evaluate rather than `scrollIntoViewIfNeeded`, which first
+  // waits for the element to be *stable*. The stage carries an idle float, so
+  // until someone touches it there is no stable frame to wait for and the
+  // action sits there until the test times out.
+  await page.locator('.showcase__stage').evaluate((el) =>
+    el.scrollIntoView({ block: 'center', behavior: 'instant' }),
+  );
   await expect(page.locator(STAGE)).toBeVisible({ timeout: 30_000 });
 }
 

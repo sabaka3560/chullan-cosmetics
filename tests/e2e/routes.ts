@@ -14,6 +14,8 @@ export const ROUTES = [
   { path: '/returns', name: 'policy: returns' },
   { path: '/privacy', name: 'policy: privacy' },
   { path: '/terms', name: 'policy: terms' },
+  { path: '/gift-cards', name: 'placeholder: gift cards' },
+  { path: '/stockists', name: 'placeholder: stockists' },
   { path: '/nonsense', name: '404' },
 ] as const;
 

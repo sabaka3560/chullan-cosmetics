@@ -43,11 +43,10 @@ export function Navbar() {
             <Menu size={20} strokeWidth={1.6} />
           </button>
           <Link className="nav__link" to="/shop">Shop</Link>
-          <Link className="nav__link" to="/#detail">The Object</Link>
           <Link className="nav__link" to="/#story">Story</Link>
         </div>
 
-        <Link className="nav__wordmark" to="/" aria-label="Chullan, home">Chullan</Link>
+        <Link className="nav__wordmark" to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Chullan, home">Chullan</Link>
 
         <div className="nav__group nav__group--end">
           <Link className="nav__link" to="/shipping">Shipping</Link>

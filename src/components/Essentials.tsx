@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { m, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 import featuredImg from '../assets/featured_product.png';
@@ -18,11 +20,19 @@ const POINTS = [
 ];
 
 export function Essentials() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
+
   return (
-    <section className="section--void on-dark cv-auto" id="story">
+    <section ref={ref} className="section--void on-dark cv-auto" id="story">
       <div className="split">
-        <div className="split__media">
-          <img
+        <div className="split__media" style={{ overflow: 'hidden' }}>
+          <m.img
+            style={{ y, scale: 1.15, transformOrigin: 'center' }}
             src={featuredImg}
             alt="Chullan revitalising moisturiser resting on coal"
             width={1024}

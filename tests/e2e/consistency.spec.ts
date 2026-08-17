@@ -23,7 +23,11 @@ import { ROUTES } from './routes';
  * has actually rendered.
  */
 async function waitForApp(page: import('@playwright/test').Page) {
-  await page.locator('#root > *').first().waitFor({ state: 'attached' });
+  // `:not([data-intro])` matters: the intro overlay mounts inside #root, so a
+  // bare `#root > *` is satisfied while the screen is still the black splash.
+  // That is exactly how this helper reported "0 eyebrows found" as a
+  // consistency failure rather than as a failure to look.
+  await page.locator('#root > *:not([data-intro])').first().waitFor({ state: 'attached' });
 }
 
 /** Every surface a section is allowed to sit on, from `:root`. */
@@ -38,20 +42,42 @@ const SURFACES = [
 
 for (const route of ROUTES) {
   test.describe(route.name, () => {
-    test('renders without console errors', async ({ page }) => {
+    test('renders without console errors or broken assets', async ({ page, baseURL }) => {
       const errors: string[] = [];
       page.on('console', (msg) => {
         if (msg.type() === 'error') errors.push(msg.text());
       });
       page.on('pageerror', (error) => errors.push(error.message));
 
+      /*
+       * Failed responses are tracked by URL rather than scraped out of console
+       * text, and only for our own origin.
+       *
+       * The console message for a failed asset is just "Failed to load
+       * resource: the server responded with a status of 404" with no URL, so a
+       * flaky fetch of the Google Fonts stylesheet under parallel load was
+       * indistinguishable from a genuinely broken asset — and failed the suite
+       * at random, on a different route each run. Third-party network weather
+       * is not something this page can fix; a 404 on our own domain is.
+       */
+      const origin = new URL(baseURL!).origin;
+      const brokenAssets: string[] = [];
+      page.on('response', (response) => {
+        if (response.status() >= 400 && response.url().startsWith(origin)) {
+          brokenAssets.push(`${response.status()} ${response.url()}`);
+        }
+      });
+
       await page.goto(route.path);
       await page.waitForLoadState('networkidle');
 
       // WebGL is unavailable in headless CI on some machines; a warning about
       // the context is an environment fact, not a defect in the page.
-      const real = errors.filter((e) => !/webgl|WebGL|GPU/i.test(e));
+      const real = errors.filter(
+        (e) => !/webgl|WebGL|GPU/i.test(e) && !/Failed to load resource/i.test(e),
+      );
       expect(real, `console errors: ${real.join(' | ')}`).toEqual([]);
+      expect(brokenAssets, `broken same-origin assets: ${brokenAssets.join(' | ')}`).toEqual([]);
     });
 
     test('has exactly one h1', async ({ page }) => {
@@ -178,6 +204,22 @@ test.describe('cross-page consistency', () => {
   });
 });
 
+/**
+ * Clicks the detail page's Add button, scrolling to it instantly first.
+ *
+ * `html { scroll-behavior: smooth }` applies to programmatic scrolling too, so
+ * Playwright's own scroll-into-view starts an animation and the element is
+ * still travelling when the click is attempted — the run log reads "done
+ * scrolling / element is outside of the viewport" and then retries until the
+ * test times out. Placing the element instantly removes the race without
+ * touching the site's scrolling behaviour.
+ */
+async function addToBag(page: import('@playwright/test').Page) {
+  const button = page.getByRole('button', { name: 'Add to bag' });
+  await button.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await button.click();
+}
+
 test.describe('the cart holds together', () => {
   /*
    * `load` rather than `networkidle` throughout this block.
@@ -216,14 +258,14 @@ test.describe('the cart holds together', () => {
     // object, and React Router reuses the component across product routes — so
     // the page could show one product while Add to bag sent another's SKU.
     await page.goto('/product/foundation', { waitUntil: 'load' });
-    await page.getByRole('button', { name: 'Add to bag' }).click();
+    await addToBag(page);
 
     const drawer = page.getByRole('dialog', { name: 'Your bag' });
     await expect(drawer.locator('.line__name')).toHaveText('Foundation');
 
     await page.keyboard.press('Escape');
     await page.goto('/product/primer-men', { waitUntil: 'load' });
-    await page.getByRole('button', { name: 'Add to bag' }).click();
+    await addToBag(page);
 
     await expect(drawer.locator('.line__name').nth(1)).toHaveText('Primer');
   });

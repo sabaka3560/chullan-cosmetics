@@ -1,4 +1,5 @@
 import { Rating } from './Rating';
+import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 
 const REVIEWS = [
@@ -35,7 +36,7 @@ export function Reviews() {
             <p className="eyebrow eyebrow--rule">What people say</p>
             <h2 className="h2 section-head__title">4.8 from 456 reviews</h2>
           </div>
-          <a className="btn--ghost" href="#">Read all</a>
+          <Link className="btn--ghost" to="/reviews">Read all</Link>
         </Reveal>
 
         <div className="reviews">

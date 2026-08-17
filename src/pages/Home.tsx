@@ -40,8 +40,8 @@ export default function Home() {
     <Layout>
       <Hero />
       <Ticker />
-      <BestSellers />
       <Showcase />
+      <BestSellers />
       <Essentials />
       <Lifestyle />
       <Reviews />
