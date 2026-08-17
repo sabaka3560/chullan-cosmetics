@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { fastrr, isConfigured } from '../_lib/env.js';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
+import { isMockMode, mockCheckoutHandoff } from '../_lib/mock.js';
 import type { PricedCart } from '../_lib/pricing.js';
 
 /**
@@ -62,6 +63,39 @@ export function verifyCartSignature(
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/**
+ * Where to send the buyer back to.
+ *
+ * Previously assembled as `https://` + the Host header, which is wrong twice
+ * over: it hardcodes a scheme, so local development over plain HTTP produced an
+ * `https://localhost:4173` URL that the browser silently refused to navigate
+ * to; and behind Vercel's proxy the scheme lives in `x-forwarded-proto` rather
+ * than being inferrable at all.
+ *
+ * The client sends its own origin, which is the only party that authoritatively
+ * knows it — but it is accepted only when its host matches the host this
+ * request actually arrived on. Without that check the field is an open
+ * redirect: anyone could hand a buyer a checkout link that returns them to a
+ * site of the attacker's choosing.
+ */
+function resolveOrigin(request: VercelRequest): string {
+  const host = request.headers.host ?? 'localhost';
+  const proto =
+    (request.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0] ??
+    (host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https');
+  const selfOrigin = `${proto}://${host}`;
+
+  const claimed = (request.body as { returnOrigin?: unknown })?.returnOrigin;
+  if (typeof claimed === 'string') {
+    try {
+      if (new URL(claimed).host === host) return claimed;
+    } catch {
+      // Unparseable; fall through to the origin we derived ourselves.
+    }
+  }
+  return selfOrigin;
+}
+
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
@@ -70,7 +104,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   // 501 rather than 500: this is "not wired up yet", which is a different thing
   // to a developer than "wired up and broken".
-  if (!isConfigured.fastrr()) {
+  if (!isConfigured.fastrr() && !isMockMode()) {
     return response.status(501).json({
       error: 'not_configured',
       message: 'FASTRR_API_KEY and FASTRR_SHARED_SECRET are not set.',
@@ -79,6 +113,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   try {
     const cart = priceCart(parseLines(request.body));
+
+    if (isMockMode()) {
+      response.setHeader('Cache-Control', 'no-store');
+      return response.status(200).json({
+        cart,
+        mock: true,
+        handoff: mockCheckoutHandoff(cart, resolveOrigin(request)),
+      });
+    }
+
     const { sharedSecret, apiKey } = fastrr();
 
     const issuedAt = Date.now();

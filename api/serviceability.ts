@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { isConfigured, shiprocket } from './_lib/env.js';
 import { ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from './_lib/pricing.js';
+import { isMockMode, mockServiceability } from './_lib/mock.js';
 
 /**
  * "Does it reach me, and when" — asked in the bag, before the buyer commits.
@@ -38,7 +39,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return response.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!isConfigured.shiprocket()) {
+  // Checked before the credential guard, so the whole flow is walkable with no
+  // Shiprocket account at all.
+  if (!isConfigured.shiprocket() && !isMockMode()) {
     return response.status(501).json({
       error: 'not_configured',
       message: 'SHIPROCKET_API_EMAIL and SHIPROCKET_API_PASSWORD are not set.',
@@ -53,7 +56,15 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   try {
+    // Priced first either way: mock mode must exercise the same validation and
+    // catalog lookup the real path does, or it is testing nothing.
     const cart = priceCart(parseLines(request.body));
+
+    if (isMockMode()) {
+      response.setHeader('Cache-Control', 'no-store');
+      return response.status(200).json(mockServiceability(pincode, cart.totalWeightGrams));
+    }
+
     const { pickupPincode } = shiprocket();
 
     const params = new URLSearchParams({

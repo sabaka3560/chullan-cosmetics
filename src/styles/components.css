@@ -2169,3 +2169,16 @@
     min-width: 44px;
   }
 }
+
+/* Test-mode banner on the order confirmation. Loud on purpose — a screen that
+   says "thank you" for an order nobody placed has to be unmistakable. */
+.test-banner {
+  margin-bottom: 22px;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--bone);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}

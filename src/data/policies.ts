@@ -38,14 +38,27 @@ export type Policy = {
  * retyped per page and drifting.
  */
 export const legalEntity = {
-  name: '[Registered legal entity name]',
-  address: '[Principal place of business — full postal address]',
+  name: 'NOWGENN Cosmetics Pvt Ltd',
+  address:
+    'Site No. 35, K. No. 35/35, Balaji Layout, Sathanur, Bengaluru, Karnataka 562149, India',
+  gstin: '29AAKCN9776F1ZO',
+  countryOfOrigin: 'India',
+
+  /*
+   * Still outstanding, and all three are legally required on a storefront —
+   * they are not optional polish. Left as visible markers rather than filled
+   * with a best guess, because a wrong contact on a grievance page is worse
+   * than an obviously missing one: a buyer writes to it and nobody answers.
+   *
+   * The Grievance Officer is a formally appointed role with a name and a
+   * working address, and the rules bind whoever is named to acknowledge within
+   * 48 hours and resolve within a month. That is a person the business
+   * designates, not a detail to infer from a contact list.
+   */
   email: '[Customer care email]',
   phone: '[Customer care phone]',
   grievanceOfficer: '[Grievance Officer name]',
   grievanceEmail: '[Grievance Officer email]',
-  gstin: '[GSTIN]',
-  countryOfOrigin: 'India',
 };
 
 export const policies: Policy[] = [
@@ -173,7 +186,7 @@ export const policies: Policy[] = [
       {
         heading: 'Pricing',
         body: [
-          'Prices are in [currency] and include GST unless stated otherwise. Shipping is shown separately before payment.',
+          'Prices are in Indian Rupees and include GST unless stated otherwise. Shipping is shown separately before payment.',
           'Country of origin: India.',
         ],
       },

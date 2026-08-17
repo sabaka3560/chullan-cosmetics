@@ -6,6 +6,7 @@ import Shop from './pages/Shop';
 import Product from './pages/Product';
 import Policy from './pages/Policy';
 import NotFound from './pages/NotFound';
+import OrderConfirmed from './pages/OrderConfirmed';
 import Placeholder from './pages/Placeholder';
 import { CartProvider } from './commerce/CartProvider';
 import { CartDrawer } from './components/CartDrawer';
@@ -38,6 +39,7 @@ function AnimatedRoutes() {
             element={<Policy slug={policy.slug} />}
           />
         ))}
+        <Route path="/order-confirmed" element={<OrderConfirmed />} />
         <Route path="/gift-cards" element={<Placeholder title="Gift Cards" />} />
         <Route path="/shade-finder" element={<Placeholder title="Shade Finder" />} />
         <Route path="/ingredients" element={<Placeholder title="Ingredients" />} />

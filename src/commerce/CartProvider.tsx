@@ -35,6 +35,18 @@ type CartContextValue = {
   close: () => void;
 
   /**
+   * Whether the bag has been read back from storage yet.
+   *
+   * Consumers that *write* to the cart on mount have to wait for this. React
+   * runs child effects before parent ones, so an order-confirmation screen that
+   * clears the bag on mount is undone a moment later when this provider's own
+   * hydration effect reads the old contents back out of localStorage — the cart
+   * empties and then refills, and the buyer is left holding what they just paid
+   * for.
+   */
+  isHydrated: boolean;
+
+  /**
    * SKU of the most recent add, cleared on a timer. Drives the transient
    * "Added" state on the card button — kept here rather than in the card so it
    * survives the card unmounting and so only one can be active at a time.
@@ -73,9 +85,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
    * the thing that breaks the day anyone tries to prerender this page — and it
    * fails as a hydration mismatch, which is a miserable bug to trace back here.
    */
+  const [isHydrated, setIsHydrated] = useState(false);
+
   useEffect(() => {
     const stored = readStoredCart();
     if (stored.lines.length > 0) dispatch({ type: 'hydrate', cart: stored });
+    setIsHydrated(true);
   }, []);
 
   const hydrated = useRef(false);
@@ -147,8 +162,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [resolved]);
 
   const value = useMemo(
-    () => ({ cart: resolved, add, setQty, remove, clear, isOpen, open, close, lastAdded }),
-    [resolved, add, setQty, remove, clear, isOpen, open, close, lastAdded],
+    () => ({
+      cart: resolved, add, setQty, remove, clear,
+      isOpen, open, close, lastAdded, isHydrated,
+    }),
+    [resolved, add, setQty, remove, clear, isOpen, open, close, lastAdded, isHydrated],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

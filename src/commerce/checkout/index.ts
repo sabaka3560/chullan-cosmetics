@@ -33,6 +33,9 @@ const fastrrProvider: CheckoutProvider = {
       body: JSON.stringify({
         // Reference-only, as everywhere else. The server owns the money.
         lines: cart.lines.map((line) => ({ sku: line.variant.sku, qty: line.qty })),
+        // The page is the only party that authoritatively knows its own origin.
+        // The server still checks it against the request host before using it.
+        returnOrigin: window.location.origin,
       }),
     });
 

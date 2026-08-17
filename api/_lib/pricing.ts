@@ -1,5 +1,6 @@
 import { catalogBySku } from '../../src/data/catalog.js';
-import type { CatalogItem, Variant } from '../../src/commerce/types.js';
+import { CURRENCY } from '../../src/commerce/money.js';
+import type { CatalogItem, Currency, Variant } from '../../src/commerce/types.js';
 
 /**
  * Prices a cart on the server.
@@ -41,7 +42,7 @@ export type PricedCart = {
   itemCount: number;
   subtotalMinor: number;
   totalWeightGrams: number;
-  currency: 'INR' | 'USD';
+  currency: Currency;
 };
 
 export class InvalidCartError extends Error {
@@ -118,8 +119,9 @@ export function priceCart(lines: IncomingLine[]): PricedCart {
     itemCount: priced.reduce((sum, l) => sum + l.qty, 0),
     subtotalMinor: priced.reduce((sum, l) => sum + l.lineTotalMinor, 0),
     totalWeightGrams: priced.reduce((sum, l) => sum + l.weightGrams, 0),
-    // Mirrors CURRENCY in src/commerce/money.ts. Both must move together when
-    // the storefront switches to INR.
-    currency: 'USD',
+    // Imported rather than mirrored. A second copy of the currency is a second
+    // thing to forget, and the failure mode is a cart priced in one currency
+    // being charged in another.
+    currency: CURRENCY,
   };
 }

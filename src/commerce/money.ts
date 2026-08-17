@@ -1,15 +1,15 @@
 import type { Currency, Money } from './types';
 
 /**
- * Currency lives here as one constant so switching the storefront is a
- * single-line change rather than a grep across every component.
+ * Currency lives here as one constant, and the server imports this same value
+ * so a priced cart can never disagree with the page that produced it.
  *
- * NOTE: this is still USD because that is what the page copy says today.
- * Shiprocket is an India-first platform — going live on it means INR, and INR
- * means real rupee prices, not the dollar figures reinterpreted. That is a
- * pricing decision, not a refactor, so it is deliberately left alone here.
+ * INR, because the business is Indian and Shiprocket bills in rupees. Note that
+ * flipping this constant is only half the job: `priceMinor` is in minor units,
+ * so a figure of 2900 means $29.00 or ₹29.00 depending on this line. The
+ * catalog figures were rescaled to rupee magnitudes at the same time.
  */
-export const CURRENCY: Currency = 'USD';
+export const CURRENCY: Currency = 'INR';
 
 const LOCALE: Record<Currency, string> = {
   USD: 'en-US',
