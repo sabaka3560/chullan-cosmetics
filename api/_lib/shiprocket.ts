@@ -1,4 +1,4 @@
-import { shiprocket } from './env';
+import { shiprocket } from './env.js';
 
 /**
  * Shiprocket auth.

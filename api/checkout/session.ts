@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { fastrr, isConfigured } from '../_lib/env';
-import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing';
-import type { PricedCart } from '../_lib/pricing';
+import { fastrr, isConfigured } from '../_lib/env.js';
+import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
+import type { PricedCart } from '../_lib/pricing.js';
 
 /**
  * Turns a bag of SKUs into a signed, priced checkout session for fastrr.

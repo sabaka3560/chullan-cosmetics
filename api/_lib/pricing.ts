@@ -1,5 +1,5 @@
-import { catalogBySku } from '../../src/data/catalog';
-import type { CatalogItem, Variant } from '../../src/commerce/types';
+import { catalogBySku } from '../../src/data/catalog.js';
+import type { CatalogItem, Variant } from '../../src/commerce/types.js';
 
 /**
  * Prices a cart on the server.

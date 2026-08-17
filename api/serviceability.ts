@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { isConfigured, shiprocket } from './_lib/env';
-import { ShiprocketError, shiprocketFetch } from './_lib/shiprocket';
-import { InvalidCartError, parseLines, priceCart } from './_lib/pricing';
+import { isConfigured, shiprocket } from './_lib/env.js';
+import { ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
+import { InvalidCartError, parseLines, priceCart } from './_lib/pricing.js';
 
 /**
  * "Does it reach me, and when" — asked in the bag, before the buyer commits.
