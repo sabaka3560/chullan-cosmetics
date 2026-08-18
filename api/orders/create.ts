@@ -4,7 +4,7 @@ import { isConfigured } from '../_lib/env.js';
 import { ShiprocketError, shiprocketFetch } from '../_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
 import { InvalidAddressError, parseAddress } from '../_lib/address.js';
-import { isRazorpayConfigured, razorpayConfig } from '../_lib/razorpay.js';
+import { isRazorpayConfigured, isTestMode, razorpayConfig } from '../_lib/razorpay.js';
 import { FREE_SHIPPING_THRESHOLD_MINOR } from '../../src/commerce/policy.js';
 
 /**
@@ -92,10 +92,17 @@ export default async function handler(request: VercelRequest, response: VercelRe
       }
     }
 
-    // Ours, and unique. Shiprocket rejects a repeat, which is what makes a
-    // retried request safe: the second attempt is refused rather than shipping
-    // the same goods twice.
-    const reference = `CHU-${Date.now().toString(36).toUpperCase()}`;
+    /*
+     * Ours, and unique. Shiprocket rejects a repeat, which is what makes a
+     * retried request safe: the second attempt is refused rather than shipping
+     * the same goods twice.
+     *
+     * Prefixed while Razorpay is on test keys, because demo orders are real
+     * orders — they appear in the panel next to genuine ones and somebody has
+     * to cancel them. Sorting the panel by reference then groups every test in
+     * one place, instead of leaving them to be picked out by the address.
+     */
+    const reference = `${isTestMode() ? 'TEST-' : ''}CHU-${Date.now().toString(36).toUpperCase()}`;
 
     const payload = {
       order_id: reference,
