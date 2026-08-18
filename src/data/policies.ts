@@ -45,19 +45,25 @@ export const legalEntity = {
   countryOfOrigin: 'India',
 
   /*
-   * Still outstanding, and all three are legally required on a storefront —
-   * they are not optional polish. Left as visible markers rather than filled
-   * with a best guess, because a wrong contact on a grievance page is worse
-   * than an obviously missing one: a buyer writes to it and nobody answers.
+   * The Grievance Officer is a formally appointed role, and the Consumer
+   * Protection (E-Commerce) Rules bind whoever is named here to acknowledge a
+   * complaint within 48 hours and resolve it within one month. It is displayed
+   * on every policy page because the rules require it to be findable, not
+   * buried behind a contact link.
+   */
+  grievanceOfficer: 'Ratheesh Rajan',
+  phone: '+91 95267 46656',
+
+  /*
+   * TODO — the two email addresses are still outstanding and are required.
    *
-   * The Grievance Officer is a formally appointed role with a name and a
-   * working address, and the rules bind whoever is named to acknowledge within
-   * 48 hours and resolve within a month. That is a person the business
-   * designates, not a detail to infer from a contact list.
+   * Left as visible markers rather than filled with a best guess: a wrong
+   * address on a grievance page is worse than an obviously missing one, because
+   * a buyer writes to it and nobody ever answers. A phone number alone also
+   * makes the business reachable only in office hours, which is a poor fit for
+   * a complaint window measured in hours.
    */
   email: '[Customer care email]',
-  phone: '[Customer care phone]',
-  grievanceOfficer: '[Grievance Officer name]',
   grievanceEmail: '[Grievance Officer email]',
 };
 
