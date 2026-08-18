@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      SVG first: one file, sharp at every size, and the only one that has to be
+      kept in step with the brand. The PNG is generated from it rather than
+      drawn separately, so the two cannot drift.
+    -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS ignores an SVG touch icon, so the home-screen tile needs a PNG. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B0B0B" />
     <meta
