@@ -4,7 +4,7 @@ import { Minus, Plus, X } from 'lucide-react';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
 import { FREE_SHIPPING_THRESHOLD_MINOR } from '../commerce/policy';
-import { CheckoutNotConnectedError, beginCheckout, checkoutProvider } from '../commerce/checkout';
+import { Link } from 'react-router-dom';
 import { analytics } from '../commerce/analytics';
 import { DeliveryCheck } from './DeliveryCheck';
 import { DUR, EASE } from '../motion/tokens';
@@ -12,10 +12,9 @@ import { DUR, EASE } from '../motion/tokens';
 /**
  * The bag.
  *
- * This is the last screen we own. Everything after the checkout button belongs
- * to the provider, so the work this panel has to do is narrow and worth doing
- * properly: show exactly what is being bought, make quantity trivial to change,
- * and never lose the cart.
+ * Its job is narrow and worth doing properly: show exactly what is being
+ * bought, make quantity trivial to change, and never lose the cart. Address and
+ * payment happen on /checkout, which has room for them.
  *
  * Deliberately a drawer rather than a route. A cart page costs a navigation in
  * each direction and drops the buyer out of the page they were browsing; the
@@ -28,7 +27,6 @@ const SELECTORS = 'a[href], button:not([disabled]), input, [tabindex]:not([tabin
 export function CartDrawer() {
   const { cart, isOpen, close, setQty, remove } = useCart();
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // A stale error from a previous visit reading as a fresh failure is worse
@@ -85,30 +83,6 @@ export function CartDrawer() {
       returnFocusTo?.focus();
     };
   }, [isOpen, close]);
-
-  const onCheckout = async () => {
-    setPending(true);
-    setError(null);
-
-    // Before the handoff, deliberately. A redirect never comes back to run
-    // this, so firing it afterwards would lose every successful checkout —
-    // exactly the ones that matter. The cost is that an abandoned handoff also
-    // counts, which is the right trade: an over-counted numerator is visible in
-    // the data, a missing one is not.
-    analytics.beginCheckout(cart, checkoutProvider.id);
-
-    try {
-      await beginCheckout(cart);
-    } catch (cause) {
-      setError(
-        cause instanceof CheckoutNotConnectedError
-          ? 'Checkout isn’t connected yet.'
-          : 'Something went wrong. Your bag is safe — try again.',
-      );
-    } finally {
-      setPending(false);
-    }
-  };
 
   const remaining = FREE_SHIPPING_THRESHOLD_MINOR - cart.subtotalMinor;
   const isEmpty = cart.lines.length === 0;
@@ -244,14 +218,22 @@ export function CartDrawer() {
                     </p>
                   )}
 
-                  <button
-                    type="button"
+                  {/*
+                    A link, not a handler. Payment and address now live on their
+                    own page, and the analytics event fires here because this is
+                    the moment the buyer commits to checking out — after the
+                    navigation it would be attributed to a page view instead.
+                  */}
+                  <Link
+                    to="/checkout"
                     className="btn btn--primary drawer__checkout"
-                    onClick={onCheckout}
-                    disabled={pending}
+                    onClick={() => {
+                      analytics.beginCheckout(cart, 'razorpay');
+                      close();
+                    }}
                   >
-                    {pending ? 'One moment…' : 'Checkout'}
-                  </button>
+                    Checkout
+                  </Link>
                 </footer>
               </>
             )}
