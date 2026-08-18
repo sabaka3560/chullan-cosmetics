@@ -22,6 +22,26 @@ export { CheckoutNotConnectedError } from './types';
 
 export type PaymentMethod = 'Prepaid' | 'COD';
 
+/**
+ * The payment succeeded but the order did not get created.
+ *
+ * Its own type because the recovery is completely different from every other
+ * failure here: the money has gone, so the one thing the buyer must not be
+ * offered is a Pay button. It carries the payment id, which is the only
+ * reference either side has to reconcile with.
+ */
+export class PaymentTakenError extends Error {
+  // A plain field rather than a constructor parameter property: the app builds
+  // with `erasableSyntaxOnly`, which forbids syntax that emits runtime code.
+  paymentId: string;
+
+  constructor(paymentId: string, message: string) {
+    super(message);
+    this.name = 'PaymentTakenError';
+    this.paymentId = paymentId;
+  }
+}
+
 export type PlacedOrder = {
   reference: string;
   totalMinor: number;
@@ -151,6 +171,10 @@ export async function placeOrder({
   await loadCheckoutScript();
   if (!window.Razorpay) throw new Error('Payment provider unavailable');
 
+  // Tracks whether Razorpay reported a successful payment, so the dismiss
+  // handler can tell "closed without paying" from "closed because it paid".
+  let paid = false;
+
   return new Promise<PlacedOrder>((resolve, reject) => {
     const checkout = new window.Razorpay!({
       key: session.keyId,
@@ -168,19 +192,42 @@ export async function placeOrder({
       theme: { color: '#111111' },
 
       handler: (result: RazorpaySuccess) => {
+        /*
+         * Marked before the await, not after.
+         *
+         * Razorpay closes its modal once a payment succeeds, and closing fires
+         * `ondismiss`. Creating the Shiprocket order takes a second or two, so
+         * without this flag the dismiss handler rejected the promise first and
+         * a completed payment was reported to the buyer as "Payment cancelled"
+         * — with a Pay button still in front of them. A promise settles once,
+         * and the wrong outcome was winning the race.
+         */
+        paid = true;
         createShiprocketOrder(cart, address, 'Prepaid', result)
           .then((order) => resolve({ ...order, testMode: session.testMode }))
-          .catch(reject);
+          .catch((cause) =>
+            reject(
+              new PaymentTakenError(
+                result.razorpay_payment_id,
+                cause instanceof Error ? cause.message : 'Order could not be placed.',
+              ),
+            ),
+          );
       },
 
       modal: {
-        // Closing the window is a decision, not a fault. Rejecting with a plain
-        // sentence re-enables the form without dressing it up as an error.
-        ondismiss: () => reject(new Error('Payment cancelled.')),
+        // Closing the window before paying is a decision, not a fault. Closing
+        // it *after* paying is just Razorpay tidying up, and must not be
+        // mistaken for the buyer walking away.
+        ondismiss: () => {
+          if (!paid) reject(new Error('Payment cancelled.'));
+        },
       },
     });
 
     checkout.on('payment.failed', (payload: unknown) => {
+      // A genuine decline. The buyer has not been charged, so retrying is the
+      // right thing to offer.
       const description = (payload as { error?: { description?: string } })?.error?.description;
       reject(new Error(description ?? 'The payment did not go through. Try another method.'));
     });

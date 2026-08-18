@@ -7,7 +7,8 @@ import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
 import { FREE_SHIPPING_THRESHOLD_MINOR } from '../commerce/policy';
 import { normalisePincode, validatePincode } from '../commerce/shipping';
-import { placeOrder } from '../commerce/checkout';
+import { legalEntity } from '../data/policies';
+import { placeOrder, PaymentTakenError } from '../commerce/checkout';
 import type { PaymentMethod } from '../commerce/checkout';
 
 /**
@@ -63,6 +64,16 @@ export default function Checkout() {
   const [delivery, setDelivery] = useState<Delivery>({ status: 'idle' });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Set when money has been taken but the order could not be created.
+   *
+   * This locks the form. Everything else here is recoverable by trying again,
+   * and this one thing is not: the buyer has already been charged, so a Pay
+   * button is an invitation to be charged twice. It carries the payment id
+   * because that is the only reference either side has to reconcile with.
+   */
+  const [paymentTaken, setPaymentTaken] = useState<string | null>(null);
 
   // An empty bag has nothing to check out. Waits for hydration first, or a
   // reload on this page bounces before the cart has been read back from storage.
@@ -134,7 +145,12 @@ export default function Checkout() {
       if (result.testMode) params.set('mock', '1');
       navigate(`/order-confirmed?${params}`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Something went wrong. Try again.');
+      if (cause instanceof PaymentTakenError) {
+        setPaymentTaken(cause.paymentId);
+        setError(cause.message);
+      } else {
+        setError(cause instanceof Error ? cause.message : 'Something went wrong. Try again.');
+      }
       setPending(false);
     }
   };
@@ -227,12 +243,27 @@ export default function Checkout() {
                   </label>
                 </fieldset>
 
-                {error && (
-                  <p className="drawer__error" role="alert">
-                    {error}
-                  </p>
+                {paymentTaken ? (
+                  <div className="paid-notice" role="alert">
+                    <strong>Your payment went through.</strong>
+                    <p>
+                      We could not place the order automatically. Please do not pay again —
+                      quote this reference and we will finish it for you.
+                    </p>
+                    <p className="mono paid-notice__ref">{paymentTaken}</p>
+                    <p>
+                      {legalEntity.grievanceOfficer} · {legalEntity.phone}
+                    </p>
+                  </div>
+                ) : (
+                  error && (
+                    <p className="drawer__error" role="alert">
+                      {error}
+                    </p>
+                  )
                 )}
 
+                {!paymentTaken && (
                 <button
                   type="submit"
                   className="btn btn--primary checkout__submit"
@@ -246,6 +277,7 @@ export default function Checkout() {
                         ? `Place order · ${formatMoney(total)}`
                         : `Pay ${formatMoney(total)}`}
                 </button>
+                )}
               </form>
             </Reveal>
           </div>
