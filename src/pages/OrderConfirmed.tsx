@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Reveal } from '../components/Reveal';
+import { OrderSeal } from '../components/OrderSeal';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
 
@@ -57,7 +58,18 @@ export default function OrderConfirmed() {
     <Layout>
       <section className="section section--bone prose">
         <div className="shell prose__shell">
-          <Reveal>
+          {/*
+            Outside the reveal below, deliberately.
+
+            The seal has to be drawing while the copy is still held back — that
+            staging is the whole effect. Nesting it inside a delayed `Reveal`
+            put it at opacity 0 for the first second, so it drew invisibly and
+            appeared already finished, which is precisely the plain version this
+            replaces.
+          */}
+          {reference && <OrderSeal tone={unverified ? 'pending' : 'confirmed'} />}
+
+          <Reveal delay={reference ? 0.95 : 0}>
             {isMock && (
               <p className="test-banner" role="status">
                 Test order — no payment was taken and nothing will ship.
@@ -82,7 +94,7 @@ export default function OrderConfirmed() {
           </Reveal>
 
           {reference && (
-            <Reveal delay={0.08}>
+            <Reveal delay={reference ? 1.05 : 0.08}>
               <section className="prose__section prose__entity">
                 <h2 className="h3">Your order</h2>
                 <dl>
@@ -107,7 +119,7 @@ export default function OrderConfirmed() {
             </Reveal>
           )}
 
-          <Reveal delay={0.12}>
+          <Reveal delay={reference ? 1.15 : 0.12}>
             <nav className="prose__nav" aria-label="Continue">
               <Link to="/shop" className="btn--ghost">Keep shopping</Link>
               <Link to="/shipping" className="btn--ghost">Shipping &amp; delivery</Link>

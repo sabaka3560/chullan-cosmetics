@@ -2446,3 +2446,26 @@
   letter-spacing: 0.04em;
   user-select: all;
 }
+
+/* ── Order seal ───────────────────────────────────────────────────────── */
+
+.seal {
+  display: block;
+  margin-bottom: 26px;
+  /* Inherits ink from the page so the mark works on bone or paper without a
+     second colour token, and follows the theme if one ever arrives. */
+  color: var(--ink);
+  /* Slightly smaller on a phone, where 120px of mark above the fold pushes the
+     order reference off screen. */
+  width: clamp(84px, 22vw, 120px);
+  height: auto;
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal {
+    /* framer already resolves the draw instantly; this catches the CSS side so
+       nothing re-introduces a transition here later. */
+    transition: none !important;
+  }
+}
