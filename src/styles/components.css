@@ -2182,3 +2182,11 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* Unverified payment. Amber rather than the flat ink of the test banner: this
+   is not a failure and must not read as one, but it is not a clean confirmation
+   either — the buyer needs to notice it and keep their reference. */
+.test-banner--warn {
+  background: #7d5f18;
+  color: #f3f1ed;
+}

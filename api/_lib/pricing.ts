@@ -35,6 +35,11 @@ export type PricedLine = {
   unitPriceMinor: number;
   lineTotalMinor: number;
   weightGrams: number;
+  /** Per-unit, for the payment provider's line items. */
+  unitWeightGrams: number;
+  description: string;
+  dimensionsCm: { length: number; width: number; height: number };
+  productId: string;
 };
 
 export type PricedCart = {
@@ -111,6 +116,10 @@ export function priceCart(lines: IncomingLine[]): PricedCart {
       unitPriceMinor: product.priceMinor,
       lineTotalMinor: product.priceMinor * line.qty,
       weightGrams: product.weightGrams * line.qty,
+      unitWeightGrams: product.weightGrams,
+      description: product.blurb,
+      dimensionsCm: product.dimensionsCm,
+      productId: product.id,
     };
   });
 

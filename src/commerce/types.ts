@@ -110,6 +110,19 @@ export type CatalogItem = {
    */
   weightGrams: number;
 
+  /**
+   * Packed carton dimensions in centimetres.
+   *
+   * Couriers bill whichever is greater, actual or volumetric weight, and
+   * volumetric is derived entirely from these three numbers. A tall light box
+   * can cost more than a small heavy one, so getting these wrong quietly erodes
+   * margin on every parcel rather than failing loudly once.
+   *
+   * TODO — measured estimates, not verified. Confirm against real packed
+   * cartons before launch; the same figures go into Shiprocket's SKU master.
+   */
+  dimensionsCm: { length: number; width: number; height: number };
+
   variants: Variant[];
 };
 

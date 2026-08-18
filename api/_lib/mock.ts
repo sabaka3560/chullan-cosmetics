@@ -1,13 +1,13 @@
-import type { PricedCart } from './pricing.js';
-
 /**
  * Development mode.
  *
- * Neither Shiprocket nor fastrr publishes a sandbox, and both gate real
- * credentials behind onboarding that takes days. Waiting on that to find out
- * whether the checkout flow holds together is the wrong order of work — so this
- * stands in for both, and the whole purchase can be walked end to end with no
- * third-party account at all.
+ * Shiprocket publishes no sandbox and gates credentials behind onboarding, so
+ * this stands in for its serviceability call and the bag can be exercised with
+ * no account at all.
+ *
+ * Checkout no longer needs a stand-in: Razorpay issues test keys immediately on
+ * signup and they run against the real API, which is a better test than any
+ * mock — the same code path, the same responses, only the money is imaginary.
  *
  * Deliberately server-side rather than a client flag. The browser talks to the
  * same routes, gets the same response shapes, and runs the same pricing,
@@ -56,24 +56,4 @@ export function mockServiceability(pincode: string, weightGrams: number) {
     codAvailable: seed % 5 !== 3,
     mock: true,
   };
-}
-
-/**
- * Stands in for the fastrr session.
- *
- * Returns a URL back into this app rather than to a payment page, because there
- * is nothing to pay. The reference is passed along so the confirmation screen
- * can show something order-shaped, and `mock=1` is in the query string so that
- * screen can say plainly what it is.
- */
-export function mockCheckoutHandoff(cart: PricedCart, origin: string) {
-  const reference = `MOCK-${Date.now().toString(36).toUpperCase()}`;
-  const params = new URLSearchParams({
-    ref: reference,
-    total: String(cart.subtotalMinor),
-    items: String(cart.itemCount),
-    mock: '1',
-  });
-
-  return { url: `${origin}/order-confirmed?${params}`, reference, mock: true };
 }

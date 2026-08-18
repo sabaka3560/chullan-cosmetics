@@ -39,20 +39,7 @@ export const shiprocket = () => ({
   pickupPincode: required('SHIPROCKET_PICKUP_PINCODE'),
 });
 
-/**
- * fastrr's platform settings issue an API key, a password, a shared secret and
- * a storefront access token. The shared secret is the one that matters here:
- * it exists to sign the cart handoff so the payload cannot be edited in transit
- * or forged wholesale. A secret used in a browser is not a secret.
- */
-export const fastrr = () => ({
-  apiKey: required('FASTRR_API_KEY'),
-  sharedSecret: required('FASTRR_SHARED_SECRET'),
-  baseUrl: process.env.FASTRR_BASE_URL ?? 'https://checkout-api.shiprocket.in',
-});
-
 /** Whether the integrations are wired at all. Lets handlers 501 rather than 500. */
 export const isConfigured = {
   shiprocket: () => Boolean(process.env.SHIPROCKET_API_EMAIL && process.env.SHIPROCKET_API_PASSWORD),
-  fastrr: () => Boolean(process.env.FASTRR_API_KEY && process.env.FASTRR_SHARED_SECRET),
 };

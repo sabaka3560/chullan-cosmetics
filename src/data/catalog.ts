@@ -41,6 +41,7 @@ export const CATALOG: CatalogItem[] = [
     // The 3D bottle models a 30ml pump bottle, which is exactly this pack.
     live: true,
     weightGrams: 140,
+    dimensionsCm: { length: 5, width: 5, height: 11 },
     variants: [
       { sku: 'CHU-FDN-30-01', label: 'Shade 01', swatch: '#e8bfa0', inStock: true },
       { sku: 'CHU-FDN-30-02', label: 'Shade 02', swatch: '#d79b70', inStock: true },
@@ -59,6 +60,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.7,
     reviews: 148,
     weightGrams: 140,
+    dimensionsCm: { length: 5, width: 5, height: 11 },
     variants: [
       { sku: 'CHU-CNC-30-01', label: 'Shade 01', swatch: '#e0ae8b', inStock: true },
       { sku: 'CHU-CNC-30-02', label: 'Shade 02', swatch: '#c98a5c', inStock: true },
@@ -76,6 +78,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.8,
     reviews: 96,
     weightGrams: 180,
+    dimensionsCm: { length: 13, width: 9, height: 2 },
     variants: only('CHU-COR-P6'),
   },
   {
@@ -89,6 +92,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.6,
     reviews: 74,
     weightGrams: 90,
+    dimensionsCm: { length: 6, width: 6, height: 5 },
     variants: only('CHU-ASP-10'),
   },
   {
@@ -102,6 +106,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.8,
     reviews: 131,
     weightGrams: 190,
+    dimensionsCm: { length: 5, width: 5, height: 17 },
     variants: only('CHU-FSP-100'),
   },
   {
@@ -115,6 +120,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.7,
     reviews: 118,
     weightGrams: 150,
+    dimensionsCm: { length: 5, width: 4, height: 16 },
     variants: only('CHU-MST-100'),
   },
   {
@@ -128,6 +134,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.9,
     reviews: 167,
     weightGrams: 150,
+    dimensionsCm: { length: 5, width: 4, height: 16 },
     variants: only('CHU-SUN-100'),
   },
   {
@@ -141,6 +148,7 @@ export const CATALOG: CatalogItem[] = [
     rating: 4.8,
     reviews: 89,
     weightGrams: 140,
+    dimensionsCm: { length: 5, width: 5, height: 11 },
     variants: only('CHU-MEN-PRM-30'),
   },
 ];

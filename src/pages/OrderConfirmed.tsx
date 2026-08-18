@@ -27,6 +27,15 @@ export default function OrderConfirmed() {
   const totalMinor = Number(params.get('total'));
   const items = Number(params.get('items'));
   const isMock = params.get('mock') === '1';
+  /*
+   * Payment succeeded but the signature could not be confirmed server-side.
+   *
+   * Deliberately its own state rather than folded into either success or
+   * failure: the money may well have left the buyer's account, so calling it a
+   * failure is wrong, and calling it a confirmed order is worse. The honest
+   * answer is that we are checking — with a reference they can quote.
+   */
+  const unverified = params.get('unverified') === '1';
 
   useEffect(() => {
     // Two guards, both load-bearing.
@@ -38,8 +47,11 @@ export default function OrderConfirmed() {
     // on mount happened *before* the provider read storage, and the old cart
     // was promptly restored over the top. The bag looked full again seconds
     // after a completed order.
-    if (isHydrated && reference) clear();
-  }, [isHydrated, reference, clear]);
+    // Not cleared when unverified: if the order cannot be confirmed, the buyer
+    // may need to try again, and an emptied bag makes that a rebuild from
+    // scratch.
+    if (isHydrated && reference && !unverified) clear();
+  }, [isHydrated, reference, unverified, clear]);
 
   return (
     <Layout>
@@ -52,12 +64,20 @@ export default function OrderConfirmed() {
               </p>
             )}
 
-            <p className="eyebrow eyebrow--rule">Order placed</p>
-            <h1 className="h2 section-head__title">Thank you</h1>
+            {unverified && (
+              <p className="test-banner test-banner--warn" role="alert">
+                We’re still confirming this payment. Keep your reference below.
+              </p>
+            )}
+
+            <p className="eyebrow eyebrow--rule">{unverified ? 'Payment received' : 'Order placed'}</p>
+            <h1 className="h2 section-head__title">{unverified ? 'Almost there' : 'Thank you'}</h1>
             <p className="deck section-head__deck">
-              {reference
-                ? 'We’ve got your order. A confirmation is on its way, and you’ll get a tracking link as soon as it leaves us.'
-                : 'There’s no order to show here — if you’ve just bought something, check your email for the confirmation.'}
+              {!reference
+                ? 'There’s no order to show here — if you’ve just bought something, check your email for the confirmation.'
+                : unverified
+                  ? 'Your payment went through, but we couldn’t confirm it automatically. Nothing further is needed from you — we’ll email you once it’s checked. Quote the reference below if you get in touch.'
+                  : 'We’ve got your order. A confirmation is on its way, and you’ll get a tracking link as soon as it leaves us.'}
             </p>
           </Reveal>
 
