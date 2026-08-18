@@ -38,6 +38,21 @@ export class ShiprocketError extends Error {
   }
 }
 
+/**
+ * Credentials were rejected, as opposed to Shiprocket being unreachable.
+ *
+ * Worth its own type because the two need completely different responses from
+ * whoever is on call: one is "fix the environment variables", the other is
+ * "wait". Collapsing them into a single upstream error sends people to read
+ * status pages when the actual problem is a typo in a password.
+ */
+export class ShiprocketAuthError extends ShiprocketError {
+  constructor(status: number) {
+    super('Shiprocket rejected the API credentials', status);
+    this.name = 'ShiprocketAuthError';
+  }
+}
+
 async function login(): Promise<string> {
   const { email, password, baseUrl } = shiprocket();
 
@@ -50,6 +65,12 @@ async function login(): Promise<string> {
   if (!response.ok) {
     // Deliberately does not echo the response body: a failed auth response can
     // contain the submitted credentials, and this string ends up in logs.
+    //
+    // 4xx means the email/password pair was refused — a configuration problem
+    // nobody will solve by retrying. 5xx is Shiprocket having a bad day.
+    if (response.status >= 400 && response.status < 500) {
+      throw new ShiprocketAuthError(response.status);
+    }
     throw new ShiprocketError('Shiprocket authentication failed', response.status);
   }
 

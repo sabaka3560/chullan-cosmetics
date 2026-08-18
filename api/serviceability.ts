@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { isConfigured, shiprocket } from './_lib/env.js';
-import { ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
+import { ShiprocketAuthError, ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from './_lib/pricing.js';
 import { isMockMode, mockServiceability } from './_lib/mock.js';
 
@@ -112,6 +112,19 @@ export default async function handler(request: VercelRequest, response: VercelRe
   } catch (cause) {
     if (cause instanceof InvalidCartError) {
       return response.status(400).json({ error: 'invalid_cart', message: cause.message });
+    }
+    // Split out so the response says which of the two it is. Chasing a
+    // "service unavailable" for an hour when the real answer was a wrong
+    // password is a bad afternoon that better error codes prevent.
+    if (cause instanceof ShiprocketAuthError) {
+      console.error('[serviceability] credentials rejected', cause.status);
+      return response.status(502).json({
+        error: 'shiprocket_auth_failed',
+        message:
+          'Shiprocket rejected the API credentials. Check SHIPROCKET_API_EMAIL and ' +
+          'SHIPROCKET_API_PASSWORD — these must be a dedicated API user created under ' +
+          'Settings → API, not your panel login.',
+      });
     }
     if (cause instanceof ShiprocketError) {
       console.error('[serviceability] shiprocket', cause.status, cause.message);

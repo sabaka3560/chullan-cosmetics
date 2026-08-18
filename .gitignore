@@ -32,3 +32,5 @@ playwright-report
 # Local secrets
 .env.local
 .env*.local
+
+.env*
