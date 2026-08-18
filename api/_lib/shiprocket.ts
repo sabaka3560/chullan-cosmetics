@@ -69,6 +69,27 @@ async function login(): Promise<string> {
     // 4xx means the email/password pair was refused — a configuration problem
     // nobody will solve by retrying. 5xx is Shiprocket having a bad day.
     if (response.status >= 400 && response.status < 500) {
+      /*
+       * Logs the upstream's own `message` and nothing else.
+       *
+       * Shiprocket answers a bad credential with 403 rather than 401, so the
+       * status alone cannot distinguish "wrong password" from "this account may
+       * not use the API" — which is the difference between resetting a password
+       * and ringing support. Its message says which; during setup here it read
+       * "Invalid email and password combination", which settled it immediately.
+       *
+       * The full body stays out of the log: a failed auth response can echo the
+       * submitted credentials.
+       */
+      const detail = await response
+        .json()
+        .then((body: unknown) =>
+          typeof body === 'object' && body !== null
+            ? String((body as { message?: unknown }).message ?? '')
+            : '',
+        )
+        .catch(() => '');
+      console.error('[shiprocket] auth refused', response.status, detail.slice(0, 200));
       throw new ShiprocketAuthError(response.status);
     }
     throw new ShiprocketError('Shiprocket authentication failed', response.status);
