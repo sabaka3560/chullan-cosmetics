@@ -62,6 +62,20 @@ export type Variant = {
   /** Approximate shade colour for the picker swatch. Cosmetic only. */
   swatch?: string;
 
+  /**
+   * Overrides the product price for this shade alone.
+   *
+   * Real money, not decoration: some shades belong to a costlier formulation
+   * tier, so the shade a buyer picks decides what they pay. Read it through
+   * `unitPriceMinor()` and never directly — the server prices the cart from the
+   * same helper, and a call site that reaches past it charges the wrong amount
+   * without failing anything.
+   */
+  priceMinor?: Money;
+
+  /** Formulation tier, where a product has more than one. Display only. */
+  tier?: string;
+
   inStock: boolean;
 };
 
@@ -86,10 +100,30 @@ export type CatalogItem = {
   /** Display copy for the size line — not a parseable quantity. */
   size: string;
 
-  /** One sentence, taken from the pack copy. */
+  /** The product description. Rendered on the card and on the product page. */
   blurb: string;
 
-  /** All shades of one product share a price in this range. */
+  /**
+   * Three or four words, for the range page.
+   *
+   * Not a shortened `blurb` — a different job. `blurb` explains one product to
+   * someone deciding on it; this names that product's role in a sequence of
+   * eight, where the reader is scanning the whole system rather than reading
+   * any single row. Truncating the long copy would give neither.
+   */
+  tagline: string;
+
+  /**
+   * Position in the eight-step routine: prep, protect, prime, correct, refine,
+   * build, control, set. Drives the process bar and the order of the range
+   * page, so the strip and the grid beneath it cannot disagree.
+   */
+  step: { index: number; label: string };
+
+  /**
+   * The default price for this product's shades. A shade that costs something
+   * else overrides it with its own `priceMinor`.
+   */
   priceMinor: Money;
   /** Set only when there is a genuine former price to strike through. */
   compareAtMinor?: Money;
@@ -137,6 +171,14 @@ export type Product = CatalogItem & {
    * exactly where that limit gets hit and the hero canvas goes black.
    */
   thumb: string;
+
+  /**
+   * Which kind of picture this is, because the two want opposite treatment in
+   * the same box: a `pack` shot is lit photography that fills its own frame and
+   * is cropped to fill; a `cutout` floats on white and is fitted inside, or the
+   * cap gets sliced off. See `.card__media img` in `components.css`.
+   */
+  shot: 'pack' | 'cutout';
 };
 
 /**

@@ -1,7 +1,12 @@
 import bottleImg from '../assets/bottle.png';
-import stickImg from '../assets/stick.png';
 import tubeImg from '../assets/tube.png';
-import { CATALOG, catalogById, catalogBySku } from './catalog';
+import foundationImg from '../assets/product-foundation.jpg';
+import concealerImg from '../assets/product-concealer.jpg';
+import moisturiserImg from '../assets/product-moisturiser.jpg';
+import correctorImg from '../assets/product-colour-corrector.jpg';
+import antiShineImg from '../assets/product-anti-shine-powder.jpg';
+import sunscreenImg from '../assets/hero-sunscreen.jpg';
+import { CATALOG, ROUTINE, catalogById, catalogBySku } from './catalog';
 import type { Product, Variant } from '../commerce/types';
 
 export type { Product, Variant };
@@ -19,26 +24,34 @@ export type { Product, Variant };
  * that resolve to hashed URLs at build time, and there is nothing for Node to
  * resolve them to.
  *
- * TODO — Colour Corrector, Anti-Shine Powder and Finishing Spray have no
- * photography yet and are borrowing another product's cutout. The design needs
- * 4:5 images on white.
+ * `shot` records what kind of picture each row has, because the two kinds want
+ * opposite treatment in the same box — see `.card__media`. A `pack` is the
+ * commissioned photography: the product lit on stone, filling its own frame,
+ * and it wants cropping to fill. A `cutout` is the product floating on white
+ * and wants fitting inside, or the cap gets sliced off.
+ *
+ * TODO — Hydra Primer and Setting Spray have no photography yet and are the
+ * only two rows still borrowing a cutout. They will look like the odd ones out
+ * on the range page until real shots exist.
  */
-const IMAGERY: Record<string, { image?: string; thumb: string }> = {
-  foundation: { thumb: bottleImg },
-  concealer: { image: stickImg, thumb: stickImg },
-  'colour-corrector': { thumb: stickImg },
-  'anti-shine-powder': { thumb: stickImg },
-  'finishing-spray': { thumb: tubeImg },
-  moisturiser: { image: tubeImg, thumb: tubeImg },
-  sunscreen: { thumb: tubeImg },
-  'primer-men': { thumb: bottleImg },
+type Imagery = { image?: string; thumb: string; shot: 'pack' | 'cutout' };
+
+const IMAGERY: Record<string, Imagery> = {
+  foundation: { image: foundationImg, thumb: foundationImg, shot: 'pack' },
+  concealer: { image: concealerImg, thumb: concealerImg, shot: 'pack' },
+  moisturiser: { image: moisturiserImg, thumb: moisturiserImg, shot: 'pack' },
+  'colour-corrector': { image: correctorImg, thumb: correctorImg, shot: 'pack' },
+  'anti-shine-powder': { image: antiShineImg, thumb: antiShineImg, shot: 'pack' },
+  sunscreen: { image: sunscreenImg, thumb: sunscreenImg, shot: 'pack' },
+  'hydra-primer': { thumb: bottleImg, shot: 'cutout' },
+  'setting-spray': { thumb: tubeImg, shot: 'cutout' },
 };
 
 export const products: Product[] = CATALOG.map((item) => ({
   ...item,
   // Falls back rather than throwing: a new SKU with no photograph yet should
   // show a placeholder, not blank the whole shop.
-  ...(IMAGERY[item.id] ?? { thumb: bottleImg }),
+  ...(IMAGERY[item.id] ?? { thumb: bottleImg, shot: 'cutout' as const }),
 }));
 
 const bySku = new Map<string, { product: Product; variant: Variant }>(
@@ -65,14 +78,22 @@ export function productById(id: string): Product | undefined {
 }
 
 /**
- * The row on the landing page. Explicit rather than `slice(0, 3)` so changing
- * what gets promoted is an edit here and not a reshuffle of the catalog.
+ * The range in the order it is used, with imagery attached.
+ *
+ * Ordered by `step` rather than by a list written here, so this grid, the range
+ * page and the process bar above it cannot drift into three different
+ * sequences.
  */
-export const bestSellerIds = ['concealer', 'foundation', 'moisturiser'] as const;
+export const routine: Product[] = [...products].sort(
+  (a, b) => a.step.index - b.step.index,
+);
 
-export const bestSellers = bestSellerIds
-  .map(productById)
-  .filter((product): product is Product => product !== undefined);
+/**
+ * The row on the landing page — now the whole range rather than a promoted
+ * three, which is what the content brief asks for, and in routine order so the
+ * grid reads as a sequence rather than a shelf.
+ */
+export const bestSellers = routine;
 
 // Re-exported so server-shared helpers stay reachable from one import site.
-export { CATALOG, catalogById, catalogBySku };
+export { CATALOG, ROUTINE, catalogById, catalogBySku };

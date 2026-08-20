@@ -264,9 +264,9 @@ test.describe('the cart holds together', () => {
     await expect(drawer.locator('.line__name')).toHaveText('Foundation');
 
     await page.keyboard.press('Escape');
-    await page.goto('/product/primer-men', { waitUntil: 'load' });
+    await page.goto('/product/hydra-primer', { waitUntil: 'load' });
     await addToBag(page);
 
-    await expect(drawer.locator('.line__name').nth(1)).toHaveText('Primer');
+    await expect(drawer.locator('.line__name').nth(1)).toHaveText('Hydra Primer');
   });
 });

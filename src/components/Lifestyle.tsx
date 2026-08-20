@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 import { SPRING, VIEWPORT_TALL } from '../motion/tokens';
 import lifestyleImg from '../assets/lifestyle_2.png';
@@ -39,13 +40,26 @@ export function Lifestyle() {
 
       <div className="band__inner">
         <Reveal viewport={VIEWPORT_TALL}>
-          <p className="eyebrow">Built for the Chullan</p>
-          <h2 className="display-l band__title">Nobody should be able to tell</h2>
+          <p className="eyebrow">Professional grade. For every skin tone</p>
+          <h2 className="display-l band__title">Your shade exists</h2>
           <p className="deck">
-            Crafted for the inherently handsome, without compromise. The point isn't
-            to look like you're wearing makeup — it's to elevate that natural South
-            Indian charm effortlessly.
+            Eight foundation shades. Fair neutral to deep warm. Two formulation
+            tiers, the original Professional Base and the advanced Pro Glow with
+            enhanced luminosity. Every shade is engineered for Indian undertones,
+            not borrowed from a Western palette.
           </p>
+          <p className="deck band__deck-2">
+            Pair with the Concealer for targeted correction, set with the Anti-Shine
+            Powder, and lock with the Setting Spray. One complete system, prep to
+            finish.
+          </p>
+
+          {/* This section has the strongest visual treatment on the page, so the
+              CTA is pointed at the highest-value page rather than back to the
+              range — the shopper is already convinced by the time they read it. */}
+          <Link className="btn btn--primary band__cta" to="/product/foundation">
+            Find your shade
+          </Link>
         </Reveal>
       </div>
     </section>

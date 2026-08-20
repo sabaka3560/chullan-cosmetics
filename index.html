@@ -14,21 +14,67 @@
     <meta name="theme-color" content="#0B0B0B" />
     <meta
       name="description"
-      content="CHULLAN. Crafted for the inherently handsome. Weightless coverage, zero shine, and undeniable South Indian charm."
+      content="Professional base makeup formulated in the USA for Indian skin tones. 8 foundation shades, salon-grade primer, anti-shine powder, setting spray, and more. Built for Indian conditions."
     />
-    <meta property="og:title" content="CHULLAN — Pure. Impact." />
+    <meta property="og:title" content="Chullan | Professional Makeup for Indian Skin Tones" />
     <meta
       property="og:description"
-      content="Crafted for the inherently handsome. Pure South Indian charm."
+      content="Professional base makeup formulated in the USA and manufactured in India. 8 products designed specifically for Indian skin tones. Trusted by salon professionals."
     />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://chullancosmetics.com/" />
+    <link rel="canonical" href="https://chullancosmetics.com/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Syne:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <title>CHULLAN — Pure. Impact.</title>
+    <title>Chullan | Professional Makeup for Indian Skin Tones</title>
+
+    <!--
+      Organization schema lives in the static HTML rather than being injected by
+      the app.
+
+      It is the one graph that has to reach a crawler which does not execute
+      JavaScript — the whole point of an entity definition is that it is found —
+      and this file is the only thing such a crawler receives. Route-specific
+      graphs are set from `useSeo`, with the caveat documented there.
+
+      Entity names are fixed by the content brief and must match everywhere they
+      appear: "Chullan Make Up Professional", "NOWGENN Cosmetics Pvt Ltd",
+      "Ratheesh Rajan". No `sameAs` until the social profile URLs are confirmed —
+      a wrong one links the entity to an account that is not the brand's.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Chullan Make Up Professional",
+        "alternateName": "Chullan",
+        "legalName": "NOWGENN Cosmetics Pvt Ltd",
+        "url": "https://chullancosmetics.com",
+        "logo": "https://chullancosmetics.com/favicon.svg",
+        "description": "Professional base makeup formulated in the USA and manufactured in India, built for Indian skin tones and Indian conditions.",
+        "foundingLocation": "India",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Site No. 35, K. No. 35/35, Balaji Layout, Sathanur",
+          "addressLocality": "Bengaluru",
+          "addressRegion": "Karnataka",
+          "postalCode": "562149",
+          "addressCountry": "IN"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer service",
+          "name": "Ratheesh Rajan",
+          "telephone": "+91-95267-46656",
+          "areaServed": "IN",
+          "availableLanguage": ["en"]
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

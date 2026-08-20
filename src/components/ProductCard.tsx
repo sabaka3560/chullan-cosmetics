@@ -6,6 +6,7 @@ import { LazyBottleStage } from '../three/LazyBottleStage';
 import { revealChild } from './Reveal';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
+import { priceRangeMinor, unitPriceMinor } from '../data/catalog';
 import type { Product } from '../commerce/types';
 
 /**
@@ -25,7 +26,21 @@ import type { Product } from '../commerce/types';
  * Quick-add and the shade swatches sit above that stretched layer, so choosing
  * a shade or adding to the bag never navigates by accident.
  */
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  copy = 'description',
+}: {
+  product: Product;
+  /**
+   * Which caption the card carries.
+   *
+   * `description` is the full sentence, for the home page where a shopper is
+   * being introduced to a product. `tagline` is three or four words, for the
+   * range page where eight cards are read as one sequence and eight long
+   * paragraphs would be a wall.
+   */
+  copy?: 'description' | 'tagline';
+}) {
   const { add, lastAdded } = useCart();
 
   // Holds the SKU and derives the variant, for the same reason the detail page
@@ -36,7 +51,38 @@ export function ProductCard({ product }: { product: Product }) {
     product.variants.find((variant) => variant.sku === selectedSku) ?? product.variants[0];
 
   const hasChoice = product.variants.length > 1;
+
+  /*
+   * Before a shade is chosen the caption sells the range — "8 shades" is the
+   * fact worth advertising on a shelf, and it is what the content brief asks
+   * for. After a tap it becomes the shade that was picked, because at that
+   * point the shopper is asking a different question: not how many are there,
+   * but which one is selected. The button's own label always names the shade,
+   * so a screen reader never depends on this either way.
+   */
+  const shadeCaption = selectedSku
+    ? selected.label
+    : `${product.variants.length} shades`;
   const justAdded = lastAdded === selected.sku;
+
+  /*
+   * Two different prices, and the difference matters.
+   *
+   * The caption advertises the range, because before a shade is chosen there is
+   * no single answer — "From ₹1,200" is the honest headline for a product whose
+   * shades are priced in tiers. The button quotes the shade actually selected,
+   * because that is the amount about to be charged, and a button that says
+   * ₹1,200 while taking ₹1,800 is the worst version of this component.
+   *
+   * Both derive from the variants, so a card can never advertise a spread that
+   * the catalog no longer has.
+   */
+  const range = priceRangeMinor(product);
+  const caption =
+    range.min === range.max
+      ? formatMoney(range.min)
+      : `From ${formatMoney(range.min)}`;
+  const selectedPrice = formatMoney(unitPriceMinor(product, selected));
 
   // 3D Parallax hover logic
   const x = useMotionValue(0);
@@ -77,7 +123,7 @@ export function ProductCard({ product }: { product: Product }) {
         transformStyle: "preserve-3d",
       }}
     >
-      <div className="card__media">
+      <div className="card__media" data-shot={product.shot}>
         {product.live ? (
           <>
             <span className="card__flag">
@@ -115,7 +161,7 @@ export function ProductCard({ product }: { product: Product }) {
             ? 'Sold out'
             : justAdded
               ? 'Added'
-              : `Add — ${formatMoney(product.priceMinor)}`}
+              : `Add — ${selectedPrice}`}
         </button>
       </div>
 
@@ -127,10 +173,18 @@ export function ProductCard({ product }: { product: Product }) {
           </Link>
         </h3>
         <div className="card__meta">
-          <span className="card__price">{formatMoney(product.priceMinor)}</span>
+          <span className="card__price">{caption}</span>
           <Rating value={product.rating} count={product.reviews} />
         </div>
         <span className="card__size">{product.size}</span>
+
+        {/* Clamped to three lines rather than truncated, so the full sentence
+            stays in the markup for indexing while the grid keeps even rows. */}
+        {copy === 'description' ? (
+          <p className="card__desc">{product.blurb}</p>
+        ) : (
+          <p className="card__tagline">{product.tagline}</p>
+        )}
 
         {hasChoice && (
           <div className="swatches" role="group" aria-label={`${product.name} shade`}>
@@ -147,7 +201,7 @@ export function ProductCard({ product }: { product: Product }) {
                 aria-label={variant.inStock ? variant.label : `${variant.label}, sold out`}
               />
             ))}
-            <span className="swatch__label">{selected.label}</span>
+            <span className="swatch__label">{shadeCaption}</span>
           </div>
         )}
       </div>

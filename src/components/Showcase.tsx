@@ -20,17 +20,20 @@ import { LazyBottleStage } from '../three/LazyBottleStage';
 const SPECS = [
   {
     label: '30ml / 1.0 fl oz',
-    value: 'The same fill across Foundation, Concealer and the Primer for men.',
+    value: 'Foundation, Concealer and Primer. Consistent professional sizing across the base range.',
   },
   {
-    label: 'Tinted glass',
-    value: 'Weighted glass body with a lacquered black pump and over-cap.',
+    label: 'Pump dispenser',
+    value:
+      'Sealed pump keeps the formula protected from air and direct contact. No contamination, no waste, no oxidation between uses.',
   },
   {
     label: 'Printed direct',
     value: 'Pack copy prints onto the glass itself rather than onto a wrap label.',
   },
   {
+    // TODO — the brief flags this one as unconfirmed: it depends on whether the
+    // bottles are in fact tinted per shade. Ratheesh to confirm before launch.
     label: 'Shade-matched',
     value: 'Each bottle is tinted to its own shade, so the pack reads as the product.',
   },
@@ -82,12 +85,12 @@ export function Showcase() {
 
           <div>
             <Reveal delay={0.08}>
-              <p className="eyebrow eyebrow--rule">The object</p>
-              <h2 className="h2 section-head__title">Designed for the Chullan</h2>
+              <p className="eyebrow eyebrow--rule">The formulation</p>
+              <h2 className="h2 section-head__title">Made for Indian skin</h2>
               <p className="deck section-head__deck">
-                Every part of the bottle is crafted to match the elegance of a true
-                South Indian gentleman. Turn it over — this is the actual geometry,
-                rendered live in your browser, not a spin of photographs.
+                Eight products. One system. Every formula built to perform on Indian
+                undertones — in Indian heat, Indian humidity, and under professional
+                studio demands. Formulated in the USA, manufactured in India.
               </p>
             </Reveal>
 

@@ -2,26 +2,44 @@ import { Rating } from './Rating';
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 
+/**
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │ PLACEHOLDER — THESE TESTIMONIALS ARE NOT REAL.                           │
+ * │                                                                          │
+ * │ Every quote, name and star rating below is written copy. The content     │
+ * │ brief renamed the badge from "Verified buyer" to professional roles      │
+ * │ (Salon professional, Bridal MUA, Makeup artist), which makes an invented │
+ * │ quote read as a sourced professional endorsement — a materially stronger │
+ * │ claim, and one the Consumer Protection (E-Commerce) Rules 2020 treat as  │
+ * │ a misleading representation if it is not genuine.                        │
+ * │                                                                          │
+ * │ Replace with real, attributable reviews before launch, or remove the     │
+ * │ section. Do not ship invented ones under a professional badge.           │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ */
 const REVIEWS = [
   {
-    quote: 'Third one I have bought. Nobody at work has noticed, which is the entire point.',
-    name: 'Arjun M.',
-    tag: 'Verified buyer',
+    quote:
+      'The shade range actually covers my clients. I am not mixing two foundations to get a match any more.',
+    name: 'Placeholder name',
+    tag: 'Salon professional',
     rating: 5,
     count: 1,
   },
   {
-    quote: 'Survived a fourteen-hour shift and a monsoon commute without sliding off my face.',
-    name: 'Daniel R.',
-    tag: 'Verified buyer',
+    quote:
+      'Held through a full wedding day — ceremony, photographs, and the reception — without a touch-up.',
+    name: 'Placeholder name',
+    tag: 'Bridal MUA',
     rating: 5,
     count: 1,
   },
   {
-    quote: 'Took two tries to find my shade. Support sorted the exchange in a day.',
-    name: 'Kwame A.',
-    tag: 'Verified buyer',
-    rating: 4,
+    quote:
+      'The corrector palette does the work of three products I used to carry in the kit.',
+    name: 'Placeholder name',
+    tag: 'Makeup artist',
+    rating: 5,
     count: 1,
   },
 ];
@@ -34,14 +52,18 @@ export function Reviews() {
         <Reveal className="section-head" as="header">
           <div>
             <p className="eyebrow eyebrow--rule">What people say</p>
-            <h2 className="h2 section-head__title">4.8 from 456 reviews</h2>
+            <h2 className="h2 section-head__title">Trusted by professionals</h2>
+            <p className="deck section-head__deck">
+              Salon professionals and makeup artists across India use Chullan as
+              their working base range. Here is what they say.
+            </p>
           </div>
           <Link className="btn--ghost" to="/reviews">Read all</Link>
         </Reveal>
 
         <div className="reviews">
           {REVIEWS.map((review, i) => (
-            <Reveal className="review" key={review.name} delay={i * 0.07}>
+            <Reveal className="review" key={review.tag} delay={i * 0.07}>
               <Rating value={review.rating} count={review.count} />
               <blockquote>&ldquo;{review.quote}&rdquo;</blockquote>
               <p className="review__by">

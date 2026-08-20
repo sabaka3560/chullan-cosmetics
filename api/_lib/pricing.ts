@@ -1,4 +1,4 @@
-import { catalogBySku } from '../../src/data/catalog.js';
+import { catalogBySku, unitPriceMinor } from '../../src/data/catalog.js';
 import { CURRENCY } from '../../src/commerce/money.js';
 import type { CatalogItem, Currency, Variant } from '../../src/commerce/types.js';
 
@@ -113,8 +113,11 @@ export function priceCart(lines: IncomingLine[]): PricedCart {
       name: product.name,
       variantLabel: variant.label,
       qty: line.qty,
-      unitPriceMinor: product.priceMinor,
-      lineTotalMinor: product.priceMinor * line.qty,
+      // Per shade, not per product — the Foundation's tiers do not share a
+      // price, so reading `product.priceMinor` here would undercharge for one
+      // of them and the mistake would never surface as an error.
+      unitPriceMinor: unitPriceMinor(product, variant),
+      lineTotalMinor: unitPriceMinor(product, variant) * line.qty,
       weightGrams: product.weightGrams * line.qty,
       unitWeightGrams: product.weightGrams,
       description: product.blurb,

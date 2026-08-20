@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InvalidCartError, parseLines, priceCart } from '../../api/_lib/pricing';
-import { CATALOG } from '../../src/data/catalog';
+import { CATALOG, unitPriceMinor } from '../../src/data/catalog';
 
 /**
  * The server-side pricing path.
@@ -70,8 +70,30 @@ describe('parseLines', () => {
 describe('priceCart', () => {
   it('prices from the catalog, not from the request', () => {
     const cart = priceCart([{ sku, qty: 3 }]);
-    expect(cart.lines[0].unitPriceMinor).toBe(foundation.priceMinor);
-    expect(cart.subtotalMinor).toBe(foundation.priceMinor * 3);
+    const unit = unitPriceMinor(foundation, foundation.variants[0]);
+    expect(cart.lines[0].unitPriceMinor).toBe(unit);
+    expect(cart.subtotalMinor).toBe(unit * 3);
+  });
+
+  /*
+   * The Foundation's shades are priced in two tiers, so the SKU — not the
+   * product — decides the amount. This asserts it on the server path
+   * specifically, because that is the number a card is actually charged; the
+   * storefront agreeing is not the same guarantee.
+   */
+  it('charges per shade where the tiers differ', () => {
+    const proGlow = foundation.variants.find((v) => v.tier === 'Pro Glow')!;
+    const base = foundation.variants.find((v) => v.tier === 'Professional Base')!;
+
+    expect(priceCart([{ sku: proGlow.sku, qty: 1 }]).subtotalMinor).toBe(180000);
+    expect(priceCart([{ sku: base.sku, qty: 1 }]).subtotalMinor).toBe(120000);
+
+    // Both shades of the same product in one bag must not collapse to one price.
+    const mixed = priceCart([
+      { sku: proGlow.sku, qty: 1 },
+      { sku: base.sku, qty: 1 },
+    ]);
+    expect(mixed.subtotalMinor).toBe(300000);
   });
 
   it('sums weight for the courier band', () => {

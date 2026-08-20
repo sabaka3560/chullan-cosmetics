@@ -119,6 +119,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               <Link className="menu__primary" to="/shop">
                 The Range
               </Link>
+              <Link className="menu__primary" to="/about">
+                About Us
+              </Link>
 
               <p className="eyebrow menu__label">Products</p>
               <ul className="menu__list">

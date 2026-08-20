@@ -131,6 +131,59 @@
   border: 2px solid currentColor;
   padding: 8px 16px;
   border-radius: 0;
+  position: relative;
+  /* Keeps the sweep inside the box, so it reads as light crossing the mark
+     rather than a band travelling across the navigation bar. */
+  overflow: hidden;
+}
+
+/*
+ * The sparkle.
+ *
+ * A narrow gold band crosses the wordmark, then waits. The travel is 1.8s of a
+ * 9s cycle and the band is off-frame for the other 7.2s, so it is caught rather
+ * than watched — the same way the highlight on a gilt edge only appears when
+ * something moves. A loop that ran continuously would be a shimmer effect, and
+ * a shimmer effect on a logo is a different kind of brand.
+ *
+ * It passes over the letters rather than behind them, because on gold leaf the
+ * light falls on the raised surface, not around it.
+ */
+.nav__wordmark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* A tight bright core with a fast falloff either side. A wide, even band
+     reads as a smudge crossing the box; the glint on a real gilded edge is
+     almost a line, and it is the sharpness that makes it look like light
+     rather than paint. */
+  background: linear-gradient(
+    100deg,
+    transparent 43%,
+    rgba(233, 189, 118, 0.12) 47%,
+    rgba(255, 233, 186, 0.62) 50%,
+    rgba(233, 189, 118, 0.12) 53%,
+    transparent 57%
+  );
+  translate: -160% 0;
+  animation: wordmark-sheen 9s var(--ease-inout) infinite;
+}
+
+@keyframes wordmark-sheen {
+  0%,
+  80% {
+    translate: -160% 0;
+  }
+  100% {
+    translate: 160% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__wordmark::after {
+    animation: none;
+  }
 }
 
 .nav__bag {
@@ -163,20 +216,43 @@
   justify-content: flex-end;
   overflow: hidden;
   background: var(--void);
-  padding-bottom: clamp(2rem, 4vw, 3.5rem);
+  /*
+   * The hero's vertical rhythm is measured against the viewport's HEIGHT, not
+   * its width — here and in `.hero__inner`, `.hero__title` and `.hero__copy`.
+   *
+   * Width-based spacing assumes a wide window is also a tall one, and a laptop
+   * at 1280x800 is neither: the same gaps that read as generous at 1080px tall
+   * pushed the spec row 114px below the fold on it. Spacing that answers to
+   * height shrinks on exactly the screens that are short and stays open on the
+   * ones that are not.
+   */
+  padding-bottom: clamp(1.25rem, 3svh, 3.5rem);
 }
 
 .hero__media {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Clips the image's 1.15 -> 1 drift. Without this the settle spills past the
+     frame, which matters on a phone where the frame is a band, not the page. */
+  overflow: hidden;
 }
 
 .hero__media img {
+  /* Out of flow deliberately. As an in-flow child the image contributes its own
+     intrinsic height to the frame, which on a phone becomes the frame's
+     flex-basis and stops it being the plain remainder it is meant to be. */
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 62% 50%;
+  /* Centred, not offset. The bottle sits mid-frame in this photograph, and a
+     phone crops a 3:2 image down to roughly a third of its width — anything
+     off-centre pushes the product out of shot entirely. On desktop the frame
+     is wider than the image is tall, so nothing is cropped horizontally and
+     this value has no effect there. */
+  object-position: 50% 50%;
 }
 
 .hero__scrim {
@@ -186,10 +262,10 @@
   background:
     linear-gradient(
       100deg,
-      rgba(6, 6, 8, 0.94) 0%,
-      rgba(6, 6, 8, 0.7) 34%,
-      rgba(6, 6, 8, 0.16) 68%,
-      rgba(6, 6, 8, 0.5) 100%
+      rgba(6, 6, 8, 0.86) 0%,
+      rgba(6, 6, 8, 0.58) 34%,
+      rgba(6, 6, 8, 0.08) 68%,
+      rgba(6, 6, 8, 0.38) 100%
     ),
     linear-gradient(to top, rgba(6, 6, 8, 0.86) 0%, transparent 44%);
 }
@@ -212,16 +288,38 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-top: calc(var(--nav-h) + 72px);
+  padding-top: calc(var(--nav-h) + clamp(1.5rem, 5svh, 4.5rem));
 }
 
 .hero__copy {
   max-width: 740px;
-  margin-bottom: clamp(3rem, 7vw, 6rem);
+  margin-bottom: clamp(1.5rem, 5svh, 4rem);
 }
 
 .hero__title {
-  margin-block: 26px 26px;
+  margin-block: clamp(0.75rem, 2.2svh, 1.625rem);
+}
+
+/* The claim carries the weight; the specification underneath it steps down so
+   the two do not compete for the same read. */
+.hero__sub {
+  max-width: 32ch;
+}
+
+.band__deck-2 {
+  margin-top: 18px;
+}
+
+.band__cta {
+  margin-top: 32px;
+}
+
+.hero__body {
+  margin-top: 18px;
+  max-width: 54ch;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: rgba(243, 241, 237, 0.66);
 }
 
 /* Each line gets its own clipping box so the reveal reads as type being
@@ -290,7 +388,7 @@
   display: block;
   width: 46px;
   height: 1px;
-  background: linear-gradient(to right, var(--hair-void-2), transparent);
+  background: linear-gradient(to right, var(--gold-dim), transparent);
 }
 
 /* ── Ticker ───────────────────────────────────────────────────────────── */
@@ -434,12 +532,30 @@
 .card__media img {
   width: 100%;
   height: 100%;
-  /* `contain`, never `cover`: these are 1:1 cutouts on white, and cover would
-     crop the cap off a bottle. Because the letterbox colour and the source
-     background are both #FFF, the letterboxing is literally invisible. */
+  /* `contain` for cutouts, never `cover`: those are 1:1 products floating on
+     white, and cover would crop the cap off a bottle. Because the letterbox
+     colour and the source background are both #FFF, it is invisible. */
   object-fit: contain;
   object-position: center 48%;
   transition: scale var(--d-media) var(--ease-expo);
+}
+
+/*
+ * Commissioned photography wants the opposite of a cutout. These frames are lit
+ * and composed to their own edges, so they fill the box and are cropped; fitting
+ * one inside would letterbox a black photograph against white card stock and
+ * put two hard edges around a picture that already has its own.
+ *
+ * The ground goes dark with it, so nothing flashes pale behind the image while
+ * it decodes.
+ */
+.card__media[data-shot='pack'] {
+  background: var(--void);
+}
+
+.card__media[data-shot='pack'] img {
+  object-fit: cover;
+  object-position: center;
 }
 
 .card:hover .card__media img {
@@ -472,7 +588,10 @@
   width: 6px;
   height: 6px;
   border-radius: 0;
-  background: var(--ink);
+  /* Six pixels of gold. It is already the only thing on the page that pulses,
+     so it is the one mark that can carry colour without asking for attention
+     it was not going to get anyway. */
+  background: var(--gold-deep);
   animation: pulse 2.4s var(--ease-inout) infinite;
 }
 
@@ -510,7 +629,17 @@
   flex-direction: column;
   gap: 10px;
   padding: 18px 20px 22px;
-  margin-top: auto;
+  /*
+   * Top-aligned, deliberately not `margin-top: auto`.
+   *
+   * Pushing the caption to the bottom bottom-aligns it, and once cards carry a
+   * description and a shade row that some products have and others do not, the
+   * blocks stop being the same height — so the names and prices land at a
+   * different y in every card of the row. Names are what the eye tracks across
+   * a grid, and the media boxes above are all the same 4:5, so anchoring to the
+   * top lines every caption up and lets the slack fall harmlessly at the foot
+   * of the shorter cards.
+   */
 }
 
 .card__name {
@@ -549,6 +678,25 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--ink-3);
+}
+
+/*
+ * Clamped, not truncated. The whole description stays in the markup — it is
+ * written to be indexed, and a substring in the DOM indexes as a substring —
+ * while the grid keeps rows the same height whether a product needs one
+ * sentence or four.
+ */
+.card__desc {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  /* Held at exactly three lines rather than up to three, so a shorter
+     description does not raise the shade row on that one card. */
+  min-height: calc(3em * 1.55);
 }
 
 /* Add bar — slides up from the bottom of the media box on hover. */
@@ -1183,6 +1331,123 @@
 }
 
 @media (max-width: 720px) {
+  /*
+   * On a phone the photograph is a band above the copy, not a backdrop behind
+   * it.
+   *
+   * A 3:2 frame in a 390x844 viewport is scaled to fit the *height*, so there
+   * is no vertical crop left to steer with: the bottle lands dead centre
+   * whatever `object-position` says. It occupies about 53% of the screen and
+   * the copy needs about 61% — they cannot share one screen as an overlay, and
+   * an overlay puts the headline straight across the pack's own wordmark.
+   *
+   * Splitting them costs nothing editorially. Photograph on top, type beneath,
+   * fading into the same void the section already sits on, so there is no seam
+   * to see.
+   */
+  /* The band takes whatever the copy leaves rather than a fixed fraction of the
+     screen. A fixed height cannot win here: this hero already filled a phone
+     exactly, so any value large enough to give the pack presence on a 844px
+     screen pushed the spec row off a 740px one. As a flex item it is simply
+     the remainder — generous on a tall phone, tight on a short one, and never
+     the thing that overflows. */
+  .hero__media {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    min-height: 140px;
+    max-height: 46svh;
+  }
+
+  .hero__scrim {
+    /* No side-lit gradient down here — nothing is set over the image any more.
+       This only lifts the pack off the top edge and dissolves the frame into
+       the page rather than cutting it off with a line. */
+    background: linear-gradient(
+      to bottom,
+      rgba(6, 6, 8, 0.5) 0%,
+      rgba(6, 6, 8, 0.05) 22%,
+      rgba(6, 6, 8, 0.05) 55%,
+      var(--void) 97%
+    );
+  }
+
+  .hero__inner {
+    /* Sized by its content, so the band above can claim the difference. */
+    flex: 0 0 auto;
+    padding-top: 20px;
+  }
+
+  /* The band has to come out of somewhere, and this hero was already filling a
+     phone screen exactly. These two margins are the slack: at 390px the copy
+     block reserved 48px below the buttons and the headline 26px either side,
+     both inherited from the desktop rhythm where there is room to spare. */
+  .hero__title {
+    margin-block: 18px;
+  }
+
+  .hero__copy {
+    margin-bottom: 22px;
+  }
+
+  /*
+   * The spec row becomes a table on a phone.
+   *
+   * As a wrapping flex row of stacked label/value pairs it cost 224px on a
+   * 360px screen — a third of the viewport for three facts — because the new
+   * values ("8 Foundation · 3 Concealer") are long enough to wrap twice each.
+   * One line per spec, label left and value right, says the same thing in a
+   * third of the space and reads as a specification rather than as three
+   * captions that happened to wrap.
+   */
+  .hero__specs {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+  }
+
+  .hero__spec {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 9px;
+    border-bottom: 1px solid var(--hair-void);
+  }
+
+  .hero__spec:last-child {
+    border-bottom: 0;
+  }
+
+  .hero__spec dt {
+    margin-bottom: 0;
+    flex: none;
+  }
+
+  .hero__spec dd {
+    text-align: right;
+  }
+
+  .hero__meta {
+    padding-top: 18px;
+  }
+
+  /* The photograph above already says there is more page. */
+  .hero__scroll {
+    display: none;
+  }
+
+  /* At 32px the two calls to action wrapped onto separate rows on a 360px
+     screen, which cost another 56px to say nothing new. */
+  .hero__actions {
+    gap: 20px;
+    margin-top: 26px;
+  }
+
+  .hero__body {
+    margin-top: 14px;
+  }
+
   .nav__group--start .nav__link,
   .nav__group--end .nav__link {
     display: none;
@@ -1639,7 +1904,12 @@
   padding-block-start: calc(var(--nav-h) + var(--sec-y) * 0.7);
 }
 
+/* Sits at the far end of the filter row and centred against the buttons, not
+   on their text baseline — the buttons are 38px tall and the count is one line,
+   so aligning type to type leaves it floating near their top edge. */
 .range__count {
+  margin-left: auto;
+  align-self: center;
   color: var(--ink-3);
 }
 
@@ -2467,5 +2737,345 @@
     /* framer already resolves the draw instantly; this catches the CSS side so
        nothing re-introduces a transition here later. */
     transition: none !important;
+  }
+}
+
+/* ============================================================================
+   FAQ
+   Native <details> disclosure. See `Faq.tsx` for why it is not a controlled
+   React accordion.
+   ========================================================================= */
+
+.faq {
+  margin-top: clamp(2rem, 4vw, 3.25rem);
+  border-top: 1px solid var(--hair-firm);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--hair);
+}
+
+.faq__q {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 92, 'wght' 600;
+  font-size: var(--t-h3);
+  line-height: 1.3;
+  color: var(--ink);
+  /* The default triangle is drawn by the UA in its own style and cannot be
+     restyled; the marker below replaces it. */
+  list-style: none;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__q:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* Plus to minus: two bars, one of which is rotated away when the panel opens.
+   Transform only, so it never triggers layout. */
+.faq__mark {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  /* Nudges the mark onto the cap line of the question it belongs to. */
+  translate: 0 2px;
+}
+
+.faq__mark::before,
+.faq__mark::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: var(--ink);
+  transition: rotate var(--d-micro) var(--ease-inout);
+}
+
+.faq__mark::after {
+  rotate: 90deg;
+}
+
+.faq__item[open] .faq__mark::after {
+  rotate: 0deg;
+}
+
+/* Gold only while open — the answer you are reading is the one that is marked,
+   and a column of gold plus signs would be a decorated list. */
+.faq__item[open] .faq__mark::before,
+.faq__item[open] .faq__mark::after {
+  background: var(--gold-deep);
+}
+
+.faq__a {
+  padding-bottom: 26px;
+  max-width: 68ch;
+}
+
+.faq__a p {
+  color: var(--ink-2);
+  font-size: var(--t-body);
+  line-height: 1.65;
+}
+
+/*
+ * Progressive enhancement. Browsers that can animate to a keyword height and
+ * expose the panel as `::details-content` get a real open; everywhere else the
+ * rules are simply ignored and the panel snaps, which is the native behaviour.
+ */
+@supports selector(::details-content) {
+  .faq__item::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size var(--d-media) var(--ease-expo),
+      content-visibility var(--d-media) allow-discrete;
+  }
+
+  .faq__item[open]::details-content {
+    block-size: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @supports selector(::details-content) {
+    .faq__item::details-content {
+      transition: none;
+    }
+  }
+}
+
+/* ============================================================================
+   ABOUT
+   ========================================================================= */
+
+.about__hero {
+  padding-top: calc(var(--nav-h) + clamp(4rem, 9vw, 8rem));
+}
+
+.about__title {
+  max-width: 18ch;
+  margin-top: 26px;
+}
+
+.about__sub {
+  margin-top: 28px;
+  max-width: 46ch;
+}
+
+.about__cta {
+  margin-top: 34px;
+}
+
+/* Three pillars. `minmax(0, 1fr)` rather than a bare `1fr`: a bare one floors
+   at min-content, so the longest unbreakable word sets the column width and the
+   three stop being equal. */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.75rem, 3.5vw, 3.5rem);
+  margin-top: clamp(2rem, 4vw, 3.25rem);
+}
+
+.pillar {
+  border-top: 1px solid var(--hair-firm);
+  padding-top: 22px;
+}
+
+.pillar__heading {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 90, 'wght' 600;
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.pillar__text {
+  margin-top: 14px;
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+
+/* Credentials strip — four figures with their labels underneath. */
+.creds {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--hair-firm);
+  padding-top: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.cred__figure {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 88, 'wght' 700;
+  /* Smaller than a display size because two of the four are standard numbers
+     ("IS 4011:2018") rather than short figures, and a scale tuned to "40°C"
+     wraps them into three lines. */
+  font-size: clamp(1.375rem, 0.9rem + 1.6vw, 2.25rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.cred__label {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@media (max-width: 860px) {
+  .pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .creds {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: clamp(1.5rem, 5vw, 2rem);
+  }
+}
+
+/* ============================================================================
+   RANGE PAGE — header, process bar, closing statement
+   ========================================================================= */
+
+.range__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end;
+  margin-bottom: clamp(2rem, 4vw, 3.25rem);
+}
+
+/*
+ * A real h1 at eyebrow size.
+ *
+ * Search wants the literal phrase a person types; the page wants a line worth
+ * reading. Rather than hide one of them — a visually-hidden h1 is the version
+ * of this trick that gets a site penalised — the keyword sentence is the h1 and
+ * is simply set small, with the editorial line carrying the visual weight
+ * underneath it as a paragraph.
+ */
+.range__h1 {
+  margin-top: 18px;
+  font-family: var(--font-text);
+  font-size: var(--t-small);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ink-3);
+  max-width: 34ch;
+}
+
+.range__title {
+  margin-top: 14px;
+}
+
+.range__lede {
+  max-width: 52ch;
+}
+
+/* The eight-step routine. A list, because it is one — and numbered by content
+   rather than by a counter so the figures match the `step` field they came
+   from even if the markup is ever reordered. */
+.process {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
+  border-block: 1px solid var(--hair-firm);
+  list-style: none;
+}
+
+.process__step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 18px;
+}
+
+.process__index {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  /* The one place on this page the accent appears: eight two-digit figures,
+     which is about as much gold as a numeral can carry. */
+  color: var(--gold-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.process__label {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 90, 'wght' 600;
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Three or four words. Sized between the name and the size line so the card
+   reads name → price → role, which is the order the question gets asked in. */
+.card__tagline {
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.closing__line {
+  max-width: 20ch;
+}
+
+.closing__seo {
+  margin-top: clamp(1.25rem, 2.5vw, 2rem);
+  max-width: 58ch;
+  color: var(--void-ink-3);
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  .range__head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* Eight columns at 360px is 45px each — narrower than the word CONTROL.
+     Two rows of four keeps every label on one line. */
+  .process {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 0;
+  }
+
+  .process__step {
+    padding-block: 14px;
+  }
+
+  .process__step:nth-child(-n + 4) {
+    border-bottom: 1px solid var(--hair-soft);
+  }
+}
+
+@media (max-width: 520px) {
+  .process {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process__step:nth-child(-n + 6) {
+    border-bottom: 1px solid var(--hair-soft);
   }
 }

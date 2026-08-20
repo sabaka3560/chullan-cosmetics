@@ -104,8 +104,21 @@ test.describe('the showcase bottle', () => {
 test.describe('the card bottle', () => {
   test('is not interactive', async ({ page }) => {
     await page.goto('/shop', { waitUntil: 'load' });
+
+    /*
+     * Scroll the card, not the canvas.
+     *
+     * The stage is mounted by an IntersectionObserver, so `[data-stage="card"]`
+     * does not exist until its slot nears the viewport — waiting for it before
+     * scrolling is a deadlock. This only ever passed because the live product
+     * happened to be the first card in the grid; it is sixth now that the range
+     * is ordered by the routine, which is far enough down a phone to expose it.
+     */
+    const host = page.locator('.card:has(a[href$="/product/foundation"])');
+    await host.scrollIntoViewIfNeeded();
+
     const card = page.locator('[data-stage="card"]').first();
-    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeVisible();
 
     // Only the showcase carries controls. A card in a grid that swallowed drags
     // would fight the horizontal product rail it sits inside on mobile.

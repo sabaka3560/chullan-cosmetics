@@ -43,7 +43,7 @@ export function Navbar() {
             <Menu size={20} strokeWidth={1.6} />
           </button>
           <Link className="nav__link" to="/shop">Shop</Link>
-          <Link className="nav__link" to="/#story">Story</Link>
+          <Link className="nav__link" to="/about">Story</Link>
         </div>
 
         <Link className="nav__wordmark" to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Chullan, home">Chullan</Link>

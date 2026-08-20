@@ -22,7 +22,8 @@ export function Layout({ children }: { children: ReactNode }) {
       transition={{ duration: 0.4, ease: 'easeInOut' }}
     >
       <p className="announce">
-        Free shipping over {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)} · 30-day returns
+        Free shipping over {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)} · Professional
+        base makeup · Formulated in the USA
       </p>
       <Navbar />
       <main>{children}</main>

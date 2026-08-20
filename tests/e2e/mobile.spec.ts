@@ -298,6 +298,8 @@ test.describe('the bag works on a phone', () => {
     expect(box!.width).toBeLessThanOrEqual(width + 1);
     expect(box!.x).toBeGreaterThanOrEqual(-1);
 
-    await expect(drawer.getByRole('button', { name: 'Checkout' })).toBeInViewport();
+    // A link, not a button — checkout is its own route now, and the drawer
+    // navigates to it rather than handling payment inline.
+    await expect(drawer.getByRole('link', { name: 'Checkout' })).toBeInViewport();
   });
 });

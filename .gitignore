@@ -34,3 +34,18 @@ playwright-report
 .env*.local
 
 .env*
+
+# Company and KYC paperwork. Kept out of the repository deliberately — an
+# Articles of Association is a legal document about the company, not an asset
+# of the site, and it does not belong in anything that gets cloned or shared.
+razorpaydocs/
+
+# Source material rather than build input: the client's original photography,
+# the content brief, and a licensed font archive. The six photographs actually
+# used are committed under src/assets; keeping the originals out avoids
+# shipping a second copy of every image and a font whose licence is unverified.
+images/
+CHULLAN cosmetics- Catalogue 2026.pdf
+
+# Screenshots taken while checking layouts.
+scratch-*.png

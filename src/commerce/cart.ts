@@ -1,4 +1,5 @@
 import { productBySku } from '../data/products';
+import { unitPriceMinor } from '../data/catalog';
 import { CURRENCY } from './money';
 import { MAX_QTY_PER_LINE } from './policy';
 import type { Cart, CartLine, ResolvedCart } from './types';
@@ -88,7 +89,7 @@ export function resolveCart(cart: Cart): ResolvedCart {
       product: entry.product,
       variant: entry.variant,
       qty: line.qty,
-      lineTotalMinor: entry.product.priceMinor * line.qty,
+      lineTotalMinor: unitPriceMinor(entry.product, entry.variant) * line.qty,
     }];
   });
 

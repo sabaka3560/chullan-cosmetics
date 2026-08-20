@@ -1,10 +1,10 @@
 const ITEMS = [
-  'Luminous matte finish',
-  'Non-comedogenic',
-  'Dermatologist tested',
-  'Fragrance free',
-  'Cruelty free',
-  'Built for the Chullan',
+  'Formulated in the USA',
+  'Manufactured in India',
+  '8 foundation shades',
+  'Alcohol-free setting spray',
+  'Stability tested at 40°C',
+  'Professional salon grade',
 ];
 
 /**

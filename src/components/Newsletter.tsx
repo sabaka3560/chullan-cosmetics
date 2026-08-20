@@ -22,13 +22,14 @@ export function Newsletter() {
       <div className="shell newsletter">
         <Reveal>
           <p className="eyebrow eyebrow--rule">Stay in the loop</p>
-          <h2 className="h2 section-head__title">Join the club</h2>
+          <h2 className="h2 section-head__title">Join the list</h2>
         </Reveal>
 
         <Reveal delay={0.08}>
           <p className="deck">
-            Ten percent off your first order, plus first access to restocks and new
-            drops. No more than one email a month.
+            Ten percent off your first order. Professional pricing updates, new
+            shade releases, and early access to limited stock. One email a month.
+            Unsubscribe any time.
           </p>
 
           {done ? (

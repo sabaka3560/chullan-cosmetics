@@ -8,6 +8,12 @@
   /* ── Surfaces ────────────────────────────────────────────────────────────
      --paper must stay pure #FFF: the product cutouts are shot on white and the
      3D canvas is transparent over it, so any tint would show a seam. */
+  /* Lets a height animate to and from `auto` — which is what the FAQ panel
+     needs, since its open size is whatever the answer happens to be. Without
+     this the `::details-content` transition has no end value to interpolate
+     towards and the panel snaps. */
+  interpolate-size: allow-keywords;
+
   --paper: #ffffff;
   --bone: #f3f1ed;
   --bone-2: #eae7e1;
@@ -36,6 +42,24 @@
   --hair-loud: rgba(17, 17, 17, 0.24);
   --hair-void: rgba(243, 241, 237, 0.16);
   --hair-void-2: rgba(243, 241, 237, 0.28);
+
+  /* ── Gold ────────────────────────────────────────────────────────────────
+     Sampled from the product photography rather than picked: the specular
+     highlights across the range sit at hsl(37 78% 70%), and this is that
+     colour.
+
+     It is also rationed the way the photographs ration it. Gold covers between
+     0.7% and 3.9% of those frames — it is what the light does on an edge, not
+     a surface anyone painted — so on screen it is limited to marks a few
+     pixels wide: the rule before an eyebrow, the scroll tick, the live dot,
+     an open FAQ. Never a fill, never type, never a border of any length.
+
+     `--gold` is for dark grounds, where it carries 11.25:1. On bone it collapses
+     to 1.55:1, so light surfaces take `--gold-deep` instead — the same hue
+     walked down until it clears 4.99:1 and can be seen at 1px. */
+  --gold: #e9bd76;
+  --gold-deep: #8a5f18;
+  --gold-dim: rgba(233, 189, 118, 0.32);
 
   /* ── Type ────────────────────────────────────────────────────────────── */
   --font-display: 'Syne', sans-serif;
@@ -325,13 +349,21 @@ li {
   gap: 12px;
 }
 
+/* The one piece of gold that repeats. It is 24x1px and sits at the head of
+   each section, so it reads as a thread running the length of the page rather
+   than as a colour the page has been given. */
 .eyebrow--rule::before {
   content: '';
   width: 24px;
   height: 1px;
-  background: currentColor;
-  opacity: 0.45;
+  background: var(--gold-deep);
+  opacity: 0.85;
   translate: 0 -0.5px;
+}
+
+.on-dark .eyebrow--rule::before {
+  background: var(--gold);
+  opacity: 0.9;
 }
 
 .deck {

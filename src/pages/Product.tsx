@@ -10,8 +10,10 @@ import { DeliveryCheck } from '../components/DeliveryCheck';
 import { LazyBottleStage } from '../three/LazyBottleStage';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
+import { unitPriceMinor } from '../data/catalog';
 import { VIEWPORT } from '../motion/tokens';
 import { productById, products } from '../data/products';
+import { SITE_ORIGIN, useSeo } from '../seo/useSeo';
 
 /**
  * Product detail.
@@ -43,6 +45,20 @@ export default function Product() {
   const selected =
     product?.variants.find((variant) => variant.sku === selectedSku) ??
     product?.variants[0];
+
+  /*
+   * Called before the early return for an unknown id, because hooks cannot be
+   * called conditionally. The fallback strings are what a missing product would
+   * show, and the canonical is omitted in that case so a 404 never claims to be
+   * the authoritative version of anything.
+   */
+  useSeo({
+    title: product
+      ? `${product.name} | Chullan Professional Makeup`
+      : 'Product not found | Chullan',
+    description: product?.blurb ?? 'This product is no longer available.',
+    canonical: product ? `${SITE_ORIGIN}/product/${product.id}` : undefined,
+  });
 
   // `replace` so a dead product link doesn't sit in history and re-break on back.
   if (!product || !selected) return <Navigate to="/shop" replace />;
@@ -97,7 +113,12 @@ export default function Product() {
                 <h1 className="h2 pdp__title">{product.name}</h1>
 
                 <div className="pdp__meta">
-                  <span className="pdp__price">{formatMoney(product.priceMinor)}</span>
+                  {/* The shade on screen, not the product's default. This page
+                      always has a shade selected, so there is no range to show
+                      and no reason to quote anything but what will be charged. */}
+                  <span className="pdp__price">
+                    {selected ? formatMoney(unitPriceMinor(product, selected)) : null}
+                  </span>
                   <Rating value={product.rating} count={product.reviews} />
                 </div>
 

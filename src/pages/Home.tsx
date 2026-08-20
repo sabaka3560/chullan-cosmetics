@@ -6,7 +6,10 @@ import { Showcase } from '../components/Showcase';
 import { Essentials } from '../components/Essentials';
 import { Lifestyle } from '../components/Lifestyle';
 import { Reviews } from '../components/Reviews';
+import { Faq } from '../components/Faq';
 import { Newsletter } from '../components/Newsletter';
+import { HOME_FAQ } from '../data/faq';
+import { faqSchema, SITE_ORIGIN, useSeo } from '../seo/useSeo';
 
 /**
  * Tonal rhythm, top to bottom:
@@ -17,6 +20,7 @@ import { Newsletter } from '../components/Newsletter';
  *   essentials                 DARK
  *   lifestyle band             DARK image
  *   reviews                    paper
+ *   faq                        bone
  *   newsletter                 bone-2
  *   footer                     DARK
  *
@@ -36,6 +40,14 @@ import { Newsletter } from '../components/Newsletter';
  * one page — the rhythm above still starts at the hero.
  */
 export default function Home() {
+  useSeo({
+    title: 'Chullan | Professional Makeup for Indian Skin Tones',
+    description:
+      'Professional base makeup formulated in the USA for Indian skin tones. 8 foundation shades, salon-grade primer, anti-shine powder, setting spray, and more. Built for Indian conditions.',
+    canonical: `${SITE_ORIGIN}/`,
+    jsonLd: [faqSchema(HOME_FAQ)],
+  });
+
   return (
     <Layout>
       <Hero />
@@ -45,6 +57,7 @@ export default function Home() {
       <Essentials />
       <Lifestyle />
       <Reviews />
+      <Faq eyebrow="Questions" title="Frequently asked" items={HOME_FAQ} id="faq" />
       <Newsletter />
     </Layout>
   );

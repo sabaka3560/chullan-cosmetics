@@ -59,6 +59,7 @@ export function Footer() {
           <nav className="footer__col" aria-label="Explore">
             <h4>Explore</h4>
             <ul>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/gift-cards">Gift Cards</Link></li>
               <li><Link to="/shade-finder">Shade Finder</Link></li>
               <li><Link to="/ingredients">Ingredients</Link></li>
