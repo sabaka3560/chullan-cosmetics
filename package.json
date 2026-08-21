@@ -13,7 +13,8 @@
     "test:ui": "playwright test tests/e2e/consistency.spec.ts",
     "test:report": "playwright show-report",
     "test:unit": "vitest run",
-    "test:all": "vitest run && playwright test"
+    "test:all": "vitest run && playwright test",
+    "optimize-images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -35,6 +36,7 @@
     "@vercel/node": "^5.10.1",
     "@vitejs/plugin-react": "^4.3.3",
     "oxlint": "^1.75.0",
+    "sharp": "^0.35.3",
     "typescript": "~6.0.2",
     "vite": "^5.4.11",
     "vitest": "^2.1.9"
