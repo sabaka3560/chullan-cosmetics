@@ -549,8 +549,64 @@
  * The ground goes dark with it, so nothing flashes pale behind the image while
  * it decodes.
  */
-.card__media[data-shot='pack'] {
+.card__media[data-shot='pack'],
+.card__media[data-shot='tile'] {
   background: var(--void);
+}
+
+/*
+ * Stands where a photograph will go.
+ *
+ * Deliberately not a grey box or a camera glyph — those read as broken. This is
+ * the brand device on the same dark ground the commissioned shots sit on, so a
+ * row of eight keeps one rhythm and the two without photography read as
+ * restraint rather than as a gap. It is also the honest option: the cutouts it
+ * replaced were showing a Foundation-labelled bottle on the Primer card.
+ */
+.pack-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+}
+
+.pack-tile__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.875rem, 1.4vw, 1.125rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--void-ink);
+  border: 2px solid currentColor;
+  padding: 8px 14px;
+}
+
+.pack-tile__name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--void-ink-3);
+}
+
+/* The same 24x1px gold rule the section eyebrows carry, so the tile is built
+   from the identity rather than invented for this one case. */
+.pack-tile__name::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.9;
 }
 
 .card__media[data-shot='pack'] img {
@@ -660,8 +716,13 @@
      both of them floating. */
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   margin-top: 2px;
+  /* The row breaks before the rating does. A card is about 130px of usable
+     width in a two-column phone grid, and "₹1,950" plus five stars plus a
+     review count does not fit — so the rating drops to its own line intact
+     rather than the stars themselves fragmenting. */
+  flex-wrap: wrap;
 }
 
 .card__price {
@@ -799,6 +860,10 @@
   display: inline-block;
   line-height: 0;
   color: rgba(17, 17, 17, 0.16);
+  /* Five separate inline SVGs, so without this they break across lines like
+     words. On a two-column phone grid a 4.7 was rendering as three stars, then
+     one, then one — which reads as a broken image, not a rating. */
+  white-space: nowrap;
 }
 
 .rating__fill {

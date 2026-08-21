@@ -124,7 +124,17 @@ export function ProductCard({
       }}
     >
       <div className="card__media" data-shot={product.shot}>
-        {product.live ? (
+        {product.shot === 'tile' ? (
+          /*
+             Stands in for a photograph that does not exist yet. The brand
+             device rather than a stock silhouette, because the one thing this
+             card must not do is imply a shape the product may not have.
+          */
+          <span className="pack-tile" aria-hidden="true">
+            <span className="pack-tile__mark">Chullan</span>
+            <span className="pack-tile__name">{product.name}</span>
+          </span>
+        ) : product.live ? (
           <>
             <span className="card__flag">
               <i />

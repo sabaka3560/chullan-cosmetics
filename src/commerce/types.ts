@@ -178,7 +178,7 @@ export type Product = CatalogItem & {
    * is cropped to fill; a `cutout` floats on white and is fitted inside, or the
    * cap gets sliced off. See `.card__media img` in `components.css`.
    */
-  shot: 'pack' | 'cutout';
+  shot: 'pack' | 'cutout' | 'tile';
 };
 
 /**

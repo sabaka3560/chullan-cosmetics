@@ -24,17 +24,26 @@ export type { Product, Variant };
  * that resolve to hashed URLs at build time, and there is nothing for Node to
  * resolve them to.
  *
- * `shot` records what kind of picture each row has, because the two kinds want
- * opposite treatment in the same box — see `.card__media`. A `pack` is the
- * commissioned photography: the product lit on stone, filling its own frame,
- * and it wants cropping to fill. A `cutout` is the product floating on white
- * and wants fitting inside, or the cap gets sliced off.
+ * `shot` records what kind of picture each row has, because they want different
+ * treatment in the same box — see `.card__media`.
  *
- * TODO — Hydra Primer and Setting Spray have no photography yet and are the
- * only two rows still borrowing a cutout. They will look like the odd ones out
- * on the range page until real shots exist.
+ *   pack   The commissioned photography: the product lit on stone, filling its
+ *          own frame. Cropped to fill, on a dark ground.
+ *   cutout The product floating on white. Fitted inside, or the cap is sliced
+ *          off. Light ground.
+ *   tile   No photograph exists. Draws the brand device instead.
+ *
+ * The `tile` case exists because the alternative was worse. Hydra Primer and
+ * Setting Spray have no shots, and the nearest cutouts in the asset set are a
+ * bottle whose label reads LUMINOUS MATTE FOUNDATION and a tube — so those two
+ * cards were advertising the wrong product on a page where people buy things.
+ * A tile shows no product rather than a wrong one, and being dark it keeps the
+ * grid's rhythm instead of punching two white holes in it.
+ *
+ * TODO — replace both with real photography. `shot` goes back to 'pack' and the
+ * tile disappears on its own.
  */
-type Imagery = { image?: string; thumb: string; shot: 'pack' | 'cutout' };
+type Imagery = { image?: string; thumb: string; shot: 'pack' | 'cutout' | 'tile' };
 
 const IMAGERY: Record<string, Imagery> = {
   foundation: { image: foundationImg, thumb: foundationImg, shot: 'pack' },
@@ -43,8 +52,10 @@ const IMAGERY: Record<string, Imagery> = {
   'colour-corrector': { image: correctorImg, thumb: correctorImg, shot: 'pack' },
   'anti-shine-powder': { image: antiShineImg, thumb: antiShineImg, shot: 'pack' },
   sunscreen: { image: sunscreenImg, thumb: sunscreenImg, shot: 'pack' },
-  'hydra-primer': { thumb: bottleImg, shot: 'cutout' },
-  'setting-spray': { thumb: tubeImg, shot: 'cutout' },
+  // Thumbs still point at a cutout: the cart line is 48px wide, where a tile
+  // would be illegible and the wrong-label problem is invisible at that size.
+  'hydra-primer': { thumb: bottleImg, shot: 'tile' },
+  'setting-spray': { thumb: tubeImg, shot: 'tile' },
 };
 
 export const products: Product[] = CATALOG.map((item) => ({
