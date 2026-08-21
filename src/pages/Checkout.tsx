@@ -5,7 +5,7 @@ import { Layout } from '../components/Layout';
 import { Reveal } from '../components/Reveal';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
-import { FREE_SHIPPING_THRESHOLD_MINOR } from '../commerce/policy';
+import { COD_FEE_MINOR, orderTotals } from '../commerce/policy';
 import { normalisePincode, validatePincode } from '../commerce/shipping';
 import { legalEntity } from '../data/policies';
 import { placeOrder, PaymentTakenError } from '../commerce/checkout';
@@ -39,8 +39,6 @@ const FIELDS = [
   { name: 'state', label: 'State', autoComplete: 'address-level1', type: 'text' },
 ] as const;
 
-const SHIPPING_FEE_MINOR = 9900;
-const COD_FEE_MINOR = 4900;
 
 type Delivery =
   | { status: 'idle' }
@@ -119,10 +117,9 @@ export default function Checkout() {
     };
   }, [pincode, cart.lines]);
 
-  const shippingFee =
-    cart.subtotalMinor >= FREE_SHIPPING_THRESHOLD_MINOR ? 0 : SHIPPING_FEE_MINOR;
-  const codFee = method === 'COD' ? COD_FEE_MINOR : 0;
-  const total = cart.subtotalMinor + shippingFee + codFee;
+  // The same function the server charges from, so what is quoted here and what
+  // is taken cannot disagree.
+  const { shippingFee, codFee, totalMinor: total } = orderTotals(cart.subtotalMinor, method);
 
   const codOffered = delivery.status === 'done' && delivery.codAvailable === true;
   const unserviceable = delivery.status === 'done' && !delivery.serviceable;

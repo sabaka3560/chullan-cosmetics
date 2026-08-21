@@ -161,7 +161,15 @@ export async function placeOrder({
   const sessionResponse = await fetch('/api/checkout/session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ lines: toLines(cart) }),
+    /*
+     * The address goes with the session, not just with fulfilment.
+     *
+     * It is stored on the Razorpay order so the `payment.captured` webhook can
+     * finish this purchase if this browser never gets the chance to — which is
+     * the one situation where the buyer has paid and nothing else knows what
+     * they bought or where it goes.
+     */
+    body: JSON.stringify({ lines: toLines(cart), address }),
   });
 
   if (sessionResponse.status === 501) throw new CheckoutNotConnectedError();

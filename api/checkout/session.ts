@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
+import { InvalidAddressError, parseAddress } from '../_lib/address.js';
+import { toNotes } from '../_lib/pending.js';
 import {
   isRazorpayConfigured,
   isTestMode,
@@ -40,8 +42,32 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   try {
-    const cart = priceCart(parseLines(request.body));
+    const lines = parseLines(request.body);
+    const cart = priceCart(lines);
     const { keyId } = razorpayConfig();
+
+    /*
+     * The address is captured here, before the payment sheet opens, and stored
+     * on the Razorpay order — see `pending.ts`. It is the only way the webhook
+     * can fulfil an order whose browser never came back, because at that point
+     * this is the only copy of it that still exists.
+     */
+    const address = parseAddress((request.body as Record<string, unknown>)?.address);
+
+    /*
+     * Ours, and generated once — here rather than at fulfilment.
+     *
+     * Both the browser and the webhook can reach Shiprocket with this order,
+     * and Shiprocket enforces uniqueness on `order_id`. Minting the reference
+     * at the moment of payment means the two paths carry the same one, so the
+     * second to arrive is refused as a duplicate instead of shipping the goods
+     * a second time. A reference generated at fulfilment would differ between
+     * them and both would succeed.
+     *
+     * Prefixed while Razorpay is on test keys, because demo orders are real
+     * orders — they appear in the panel next to genuine ones.
+     */
+    const reference = `${isTestMode() ? 'TEST-' : ''}CHU-${Date.now().toString(36).toUpperCase()}`;
 
     // Used for `product_url`, so Magic Checkout can link a line back to the
     // page it was bought from. Derived from the request rather than configured,
@@ -104,10 +130,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
       // Indian D2C is the single largest avoidable cost.
       rto_review: true,
 
-      notes: {
-        itemCount: String(cart.itemCount),
-        weightGrams: String(cart.totalWeightGrams),
-      },
+      // Everything the webhook needs to finish this order without a browser.
+      notes: toNotes({
+        reference,
+        address,
+        lines,
+        itemCount: cart.itemCount,
+        weightGrams: cart.totalWeightGrams,
+      }),
       // The SDK overloads `create` for the callback form, so the promise
       // signature needs narrowing before the result can be read.
     })) as { id: string; amount: number | string; currency: string };
@@ -123,11 +153,23 @@ export default async function handler(request: VercelRequest, response: VercelRe
       // Publishable by design — Checkout needs it to identify the merchant.
       keyId,
       testMode: isTestMode(),
+      /*
+       * Returned for logging and support only. The browser does not send it
+       * back — `/api/orders/create` reads the reference from the Razorpay order
+       * itself once the payment signature checks out, so the value that decides
+       * what gets shipped is never one the client could have altered.
+       */
+      reference,
       cart,
     });
   } catch (cause) {
     if (cause instanceof InvalidCartError) {
       return response.status(400).json({ error: 'invalid_cart', message: cause.message });
+    }
+    if (cause instanceof InvalidAddressError) {
+      return response
+        .status(400)
+        .json({ error: 'invalid_address', field: cause.field, message: cause.message });
     }
     console.error('[checkout/session]', cause);
     return response.status(502).json({ error: 'order_creation_failed' });

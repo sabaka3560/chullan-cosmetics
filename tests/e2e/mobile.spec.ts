@@ -190,16 +190,28 @@ test.describe('touch targets', () => {
             // pseudo-element, which getBoundingClientRect cannot see.
             if (el.classList.contains('card__link')) return false;
 
-            // Half a pixel of tolerance. Device pixel ratios produce widths
-            // like 43.996 for a box that is 44px by every definition that
-            // matters, and reporting those as failures teaches you to skim.
-            return rect.height < min - 0.5 || rect.width < min - 0.5;
+            /*
+             * Layout size, not the painted box.
+             *
+             * `getBoundingClientRect` includes transforms, and the scroll
+             * reveals animate scale — so a control caught a frame before its
+             * reveal settles reports 43.1px for a box that is 44px the instant
+             * the animation ends. `checkVisibility` above does not filter those
+             * out, because opacity has already reached 1 while scale is still
+             * arriving. `offsetWidth`/`offsetHeight` ignore transforms, which
+             * is the honest measure: what a finger meets is the settled size,
+             * not a frame of an animation nobody can tap during.
+             *
+             * Half a pixel of tolerance on top. Device pixel ratios produce
+             * widths like 43.996 for a box that is 44px by every definition
+             * that matters, and reporting those teaches you to skim.
+             */
+            return el.offsetHeight < min - 0.5 || el.offsetWidth < min - 0.5;
           })
           .slice(0, 6)
           .map((el) => {
-            const r = el.getBoundingClientRect();
             const label = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 24);
-            return `${el.tagName.toLowerCase()}[${label}] ${Math.round(r.width)}x${Math.round(r.height)}`;
+            return `${el.tagName.toLowerCase()}[${label}] ${el.offsetWidth}x${el.offsetHeight}`;
           });
       }, MIN_TAP_TARGET);
 

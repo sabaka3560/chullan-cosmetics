@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { isConfigured, shiprocket } from './_lib/env.js';
 import { ShiprocketAuthError, ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
-import { FREE_SHIPPING_THRESHOLD_MINOR } from '../src/commerce/policy.js';
+import { FREE_SHIPPING_THRESHOLD_MINOR, COD_FEE_MINOR, SHIPPING_FEE_MINOR } from '../src/commerce/policy.js';
 
 /**
  * Razorpay Magic Checkout calls this while the buyer is choosing an address.
@@ -36,9 +36,7 @@ type IncomingAddress = {
 };
 
 /** Flat fee below the free-shipping threshold. Paise. */
-const SHIPPING_FEE_MINOR = 9900;
 /** Charged on top for cash on delivery. Paise. */
-const COD_FEE_MINOR = 4900;
 
 const PINCODE = /^[1-9][0-9]{5}$/;
 

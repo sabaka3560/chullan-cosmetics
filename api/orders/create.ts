@@ -1,11 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { validatePaymentVerification } from 'razorpay/dist/utils/razorpay-utils.js';
 import { isConfigured } from '../_lib/env.js';
-import { ShiprocketError, shiprocketFetch } from '../_lib/shiprocket.js';
+import { ShiprocketError } from '../_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
 import { InvalidAddressError, parseAddress } from '../_lib/address.js';
-import { isRazorpayConfigured, isTestMode, razorpayConfig } from '../_lib/razorpay.js';
-import { FREE_SHIPPING_THRESHOLD_MINOR } from '../../src/commerce/policy.js';
+import { isRazorpayConfigured, isTestMode, razorpayClient, razorpayConfig } from '../_lib/razorpay.js';
+import { buildOrderPayload, placeOrder, totalsFor } from '../_lib/fulfil.js';
+import type { PaymentMethod } from '../_lib/fulfil.js';
 
 /**
  * Places the order in Shiprocket. The end of the purchase, for both paths.
@@ -23,11 +24,6 @@ import { FREE_SHIPPING_THRESHOLD_MINOR } from '../../src/commerce/policy.js';
  * the amount actually captured must be checked against what the order claims,
  * or a tampered client could pay for one item and be shipped ten.
  */
-
-const SHIPPING_FEE_MINOR = 9900;
-const COD_FEE_MINOR = 4900;
-
-type PaymentMethod = 'Prepaid' | 'COD';
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   if (request.method !== 'POST') {
@@ -58,11 +54,19 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     const address = parseAddress(body?.address);
     const cart = priceCart(parseLines(body));
+    const { totalMinor } = totalsFor(cart, method);
 
-    const shippingFee =
-      cart.subtotalMinor >= FREE_SHIPPING_THRESHOLD_MINOR ? 0 : SHIPPING_FEE_MINOR;
-    const codFee = method === 'COD' ? COD_FEE_MINOR : 0;
-    const totalMinor = cart.subtotalMinor + shippingFee + codFee;
+    /*
+     * Ours, and unique. Shiprocket rejects a repeat, which is what makes the
+     * webhook safe to run alongside this: whichever arrives second is refused
+     * rather than shipping the same goods twice.
+     *
+     * For a prepaid order the reference is not minted here — it was minted when
+     * the Razorpay order was created and lives in its notes. Reading it back
+     * means this path and the webhook converge on one Shiprocket record. Cash
+     * on delivery has no Razorpay order, so it mints its own.
+     */
+    let reference = `${isTestMode() ? 'TEST-' : ''}CHU-${Date.now().toString(36).toUpperCase()}`;
 
     /*
      * Prepaid must prove the payment before an order exists. Creating first and
@@ -90,62 +94,27 @@ export default async function handler(request: VercelRequest, response: VercelRe
         console.warn('[orders/create] signature mismatch', orderId);
         return response.status(400).json({ error: 'invalid_signature' });
       }
+
+      /*
+       * Read after the signature is verified, so this is a lookup of an order
+       * the buyer has provably paid for. If the note is missing — an order made
+       * before this existed, say — the locally minted reference above stands,
+       * and the worst case is the old behaviour rather than a failed checkout.
+       */
+      try {
+        const rzpOrder = (await razorpayClient().orders.fetch(orderId)) as {
+          notes?: Record<string, unknown>;
+        };
+        const stored = rzpOrder.notes?.reference;
+        if (typeof stored === 'string' && stored) reference = stored;
+      } catch (cause) {
+        console.warn('[orders/create] could not read order notes', orderId, cause);
+      }
     }
 
-    /*
-     * Ours, and unique. Shiprocket rejects a repeat, which is what makes a
-     * retried request safe: the second attempt is refused rather than shipping
-     * the same goods twice.
-     *
-     * Prefixed while Razorpay is on test keys, because demo orders are real
-     * orders — they appear in the panel next to genuine ones and somebody has
-     * to cancel them. Sorting the panel by reference then groups every test in
-     * one place, instead of leaving them to be picked out by the address.
-     */
-    const reference = `${isTestMode() ? 'TEST-' : ''}CHU-${Date.now().toString(36).toUpperCase()}`;
-
-    const payload = {
-      order_id: reference,
-      order_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      pickup_location: pickupLocation,
-
-      billing_customer_name: address.firstName,
-      billing_last_name: address.lastName,
-      billing_address: address.line1,
-      billing_address_2: address.line2,
-      billing_city: address.city,
-      billing_pincode: address.pincode,
-      billing_state: address.state,
-      billing_country: 'India',
-      billing_email: address.email,
-      billing_phone: address.phone,
-      shipping_is_billing: true,
-
-      order_items: cart.lines.map((line) => ({
-        name: line.name,
-        sku: line.sku,
-        units: line.qty,
-        // Shiprocket bills in rupees, not paise. This is the one boundary in the
-        // system where money leaves minor units, so it is converted once, here.
-        selling_price: line.unitPriceMinor / 100,
-      })),
-
-      payment_method: method,
-      shipping_charges: shippingFee / 100,
-      sub_total: totalMinor / 100,
-
-      // Whole-parcel figures. Height sums because items stack in one carton;
-      // length and breadth take the largest, since the box must fit the widest.
-      length: Math.max(...cart.lines.map((l) => l.dimensionsCm.length)),
-      breadth: Math.max(...cart.lines.map((l) => l.dimensionsCm.width)),
-      height: cart.lines.reduce((sum, l) => sum + l.dimensionsCm.height * l.qty, 0),
-      weight: cart.totalWeightGrams / 1000,
-    };
-
-    const created = (await shiprocketFetch('/orders/create/adhoc', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })) as { order_id?: number; shipment_id?: number; status?: string };
+    const created = await placeOrder(
+      buildOrderPayload({ reference, address, cart, method, pickupLocation }),
+    );
 
     response.setHeader('Cache-Control', 'no-store');
     return response.status(200).json({
