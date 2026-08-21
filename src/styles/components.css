@@ -230,8 +230,19 @@
 
 .hero {
   position: relative;
-  /* svh, never vh — vh jumps when the mobile URL bar collapses. */
-  min-height: 100svh;
+  /*
+   * svh, never vh — vh jumps when the mobile URL bar collapses.
+   *
+   * Minus the announcement bar, because that bar is `position: relative` and
+   * therefore in flow: it pushes this section down by its own height before
+   * this section has said anything about how tall it wants to be. A full
+   * 100svh on top of that is a hero one bar taller than the screen, and what
+   * fell off the bottom was the spec row — the shade count, which is the one
+   * fact on this screen a buyer is actually looking for. The nav is subtracted
+   * by nobody on purpose: it is `position: fixed`, so it costs no layout
+   * height and the photograph is meant to run under it.
+   */
+  min-height: calc(100svh - var(--announce-h));
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1418,62 +1429,73 @@
 
 @media (max-width: 720px) {
   /*
-   * On a phone the photograph is a band above the copy, not a backdrop behind
-   * it.
+   * On a phone the photograph is the backdrop, the same as on desktop — it
+   * fills the section and the type sits over it.
    *
-   * A 3:2 frame in a 390x844 viewport is scaled to fit the *height*, so there
-   * is no vertical crop left to steer with: the bottle lands dead centre
-   * whatever `object-position` says. It occupies about 53% of the screen and
-   * the copy needs about 61% — they cannot share one screen as an overlay, and
-   * an overlay puts the headline straight across the pack's own wordmark.
+   * This was a band above the copy for one release, because the previous hero
+   * could not survive being written on. That photograph was a single pack
+   * centred in the frame and lit against its own reflection, so a 3:2 crop in
+   * a portrait viewport put the bottle dead centre with the headline straight
+   * across its wordmark, and there was nowhere dark to put type.
    *
-   * Splitting them costs nothing editorially. Photograph on top, type beneath,
-   * fading into the same void the section already sits on, so there is no seam
-   * to see.
+   * The photograph it replaced that with is a different composition and the
+   * constraint went with it: two packs either side of a lit arch, black rock
+   * down the left, and dark marble across the bottom where the copy lands. A
+   * phone still crops a 3:2 frame to roughly a third of its width, so both
+   * packs are only partly in shot — but they read as flanking the type rather
+   * than as fighting it, which is what the band existed to prevent.
    */
-  /* The band takes whatever the copy leaves rather than a fixed fraction of the
-     screen. A fixed height cannot win here: this hero already filled a phone
-     exactly, so any value large enough to give the pack presence on a 844px
-     screen pushed the spec row off a 740px one. As a flex item it is simply
-     the remainder — generous on a tall phone, tight on a short one, and never
-     the thing that overflows. */
   .hero__media {
-    position: relative;
-    inset: auto;
-    flex: 1 1 auto;
-    min-height: 140px;
-    max-height: 46svh;
+    /* Back to the desktop behaviour: out of flow, filling the section, so the
+       copy is measured against the whole screen instead of the remainder. */
+    position: absolute;
+    inset: 0;
+    flex: none;
+    min-height: 0;
+    max-height: none;
   }
 
   .hero__scrim {
-    /* No side-lit gradient down here — nothing is set over the image any more.
-       This only lifts the pack off the top edge and dissolves the frame into
-       the page rather than cutting it off with a line. */
+    /*
+     * Weighted to the bottom, because that is where the type is: the hero is a
+     * flex column justified to its end, so the headline, the buttons and the
+     * spec table all live in the lower two thirds.
+     *
+     * The top stays comparatively open — that is the arch and the bottle caps,
+     * the part of the frame worth seeing — and takes only enough darkening to
+     * keep the nav and the announcement bar legible over it. The step at 74%
+     * is deliberately not a smooth ramp: a linear fade reached the headline
+     * still too transparent to hold it, and darkening the whole thing evenly
+     * to fix that flattened the photograph into a grey field.
+     */
     background: linear-gradient(
-      to bottom,
-      rgba(6, 6, 8, 0.5) 0%,
-      rgba(6, 6, 8, 0.05) 22%,
-      rgba(6, 6, 8, 0.05) 55%,
-      var(--void) 97%
+      to top,
+      rgba(6, 6, 8, 0.94) 0%,
+      rgba(6, 6, 8, 0.9) 26%,
+      rgba(6, 6, 8, 0.72) 48%,
+      rgba(6, 6, 8, 0.34) 74%,
+      rgba(6, 6, 8, 0.5) 100%
     );
   }
 
   .hero__inner {
-    /* Sized by its content, so the band above can claim the difference. */
+    /* The only child in flow now that the photograph is out of it, so it is
+       sized by its content and the flex column justifies it to the bottom. */
     flex: 0 0 auto;
     padding-top: 20px;
   }
 
-  /* The band has to come out of somewhere, and this hero was already filling a
-     phone screen exactly. These two margins are the slack: at 390px the copy
-     block reserved 48px below the buttons and the headline 26px either side,
-     both inherited from the desktop rhythm where there is room to spare. */
+  /* Still tighter than the desktop rhythm, which reserves 48px below the copy
+     block and 26px either side of the headline. The photograph no longer has
+     to be paid for out of these, but a phone is short before it is narrow: at
+     360x740 the desktop values push the spec table under the fold on their
+     own, and the table is the part carrying the shade count. */
   .hero__title {
-    margin-block: 18px;
+    margin-block: 22px;
   }
 
   .hero__copy {
-    margin-bottom: 22px;
+    margin-bottom: 26px;
   }
 
   /*

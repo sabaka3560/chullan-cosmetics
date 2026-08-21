@@ -58,12 +58,12 @@ export function Hero() {
 
   return (
     <section className="hero on-dark" id="top">
-      {/* The drift lives on the image, not on its frame.
-          On a phone `.hero__media` is a fixed-height band above the copy rather
-          than a full-bleed backdrop, and animating the frame would animate that
-          band's bottom edge — the photograph would visibly grow into the
-          headline for six seconds. Scaling the image inside a clipped frame
-          reads identically and leaves the edge where it was put. */}
+      {/* The drift lives on the image, not on its frame. Animating the frame
+          would animate its edges, and the frame is what the scrim and the
+          section's own bounds are measured against — so the darkening would
+          drift out of register with the photograph for the six seconds it
+          settles. Scaling the image inside a clipped frame reads identically
+          and leaves every edge where it was put. */}
       <div className="hero__media">
         <m.img
           src={heroImg}
@@ -87,10 +87,9 @@ export function Hero() {
             opacity: { duration: 1.2, ease: 'linear' },
           }}
         />
-        {/* Nested inside the frame rather than a sibling of it. On desktop both
-            are `inset: 0` so this is the same picture; on a phone the frame
-            sizes itself and the scrim has to follow it, which it cannot do from
-            outside. */}
+        {/* Nested inside the frame rather than a sibling of it, so it is
+            clipped by the same `overflow: hidden` and cannot be left behind if
+            the frame is ever sized by something other than the section. */}
         <div className="hero__scrim" />
       </div>
       <div className="hero__grid" />
