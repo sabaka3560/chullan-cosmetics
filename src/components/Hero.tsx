@@ -1,7 +1,7 @@
 import { m, useReducedMotion } from 'framer-motion';
 import { SplitText } from './Reveal';
 import { EASE } from '../motion/tokens';
-import heroImg from '../assets/hero-sunscreen.jpg';
+import heroImg from '../assets/hero-primer-spray.jpg';
 
 /**
  * Authored beats rather than a chain of nested staggers.
@@ -68,8 +68,8 @@ export function Hero() {
         <m.img
           src={heroImg}
           alt=""
-          width={1535}
-          height={1024}
+          width={1264}
+          height={848}
           fetchPriority="high"
           decoding="sync"
           /* Opacity resolves much faster than scale, so the image is *there*

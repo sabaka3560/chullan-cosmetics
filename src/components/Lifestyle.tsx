@@ -3,7 +3,7 @@ import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
 import { SPRING, VIEWPORT_TALL } from '../motion/tokens';
-import lifestyleImg from '../assets/lifestyle_2.png';
+import lifestyleImg from '../assets/lifestyle-shades.jpg';
 
 /**
  * Transform parallax, not `background-attachment: fixed` — which iOS Safari

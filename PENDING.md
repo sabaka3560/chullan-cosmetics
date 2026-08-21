@@ -59,24 +59,52 @@ its own content.
 
 ---
 
-## 3. Two products have no photography
+## 3. Two of the generated images have misspelt text baked into the pixels
 
-**Where:** `src/data/products.ts` → `IMAGERY`
-**Risk:** cosmetic
+**Where:** `src/assets/hero-primer-spray.jpg`, `src/assets/lifestyle-shades.jpg`
+**Risk:** brand credibility
 
-**Hydra Primer** and **Setting Spray** have no product shots. They currently
-render a dark brand tile — the wordmark and the product name on the same ground
-as the photographed products.
+These were generated rather than photographed, and the generator garbled the
+small text. It is in the pixels, so it cannot be fixed in code — only by
+replacing the file. The imports do not change: drop a corrected JPEG in at the
+same filename and rebuild.
 
-That is deliberate. The nearest available images were a bottle whose label reads
-*LUMINOUS MATTE FOUNDATION* and a generic tube, and showing the wrong product on
-a page where people buy things is worse than showing none.
+**Hero** (`hero-primer-spray.jpg`) — legible at desktop size, illegible on a
+phone:
 
-**To resolve:** add the two photographs to `src/assets/`, import them, and change
-each row's `shot` from `'tile'` back to `'pack'`. The tile disappears on its own.
+| Reads | Should read |
+| --- | --- |
+| CUN PRIMER | OUR PRIMER |
+| MOISTUNE | MOISTURE |
+| A EMOOTH | A SMOOTH |
+| PLAWLESS | FLAWLESS |
+| MAKEOP | MAKEUP |
+| ENEURES | ENSURES |
+| A BEFRESHEO | A REFRESHED |
+| ALL-OAY | ALL-DAY |
+| 3.4 fl oɛ | 3.4 fl oz |
 
-Ideally shot to match the existing six: product lit on dark stone, filling the
-frame, roughly 4:5.
+**Shades band** (`lifestyle-shades.jpg`) — worse, because it garbles the
+wordmark lockup itself: `FFOFCEDIOM`, `M&RS DP` and `PROFSSSIONAL` all stand in
+for *MAKE UP PROFESSIONAL*, one bottle reads `SKIN PEDFECTING`, and **two
+different bottles are both labelled PORCELAIN**. The shade names it does show —
+Porcelain, Medium Tan, Ebony — are also not the names in `catalog.ts`, which
+ties into item 4.
+
+**Setting Spray product shot** (`product-setting-spray.jpg`) carries one word
+from the same defect: the lockup reads `MANE UP`. Verified against the source at
+native resolution with nearest-neighbour magnification, so it is in the original
+and not an artefact of the crop.
+
+`essentials-moisturizer.jpg` and `product-hydra-primer.jpg` are **clean** —
+every word correct. That is the useful signal: the generator handles a short
+label fine and falls apart on dense fine print, so regenerating with less text
+on the pack is likely to fix it.
+
+**Resolved by this pass:** Hydra Primer and Setting Spray no longer render brand
+tiles. Both are cropped 4:5 from the hero photograph, framed cap-to-label so the
+garbled paragraph sits below the crop. All eight products now carry real
+imagery, and `shot: 'tile'` is currently unused.
 
 ---
 
@@ -143,6 +171,17 @@ dashboard. See `docs/razorpay-webhook.md` for the exact steps.
 
 ## Housekeeping
 
+- Six image assets are now orphaned by the swaps and can be deleted:
+  `featured_product.png`, `hero.png`, `hero_product.png`, `lifestyle_1.png`,
+  `lifestyle_2.png`, `stick.png`. Vite only bundles what is imported, so they
+  cost buyers nothing today — this is repo weight, not page weight.
+- `bottle.png` (448 kB) and `tube.png` (381 kB) are photographs saved as PNG.
+  Palette-quantising them as PNG saves ~45%, but they are smooth dark gradients
+  and quantisation bands them visibly — and `bottle.png` is the poster frame the
+  3D stage shows before WebGL mounts, so the banding would be on screen. Doing
+  this properly means re-encoding to JPEG and changing the imports in
+  `products.ts` and `LazyBottleStage.tsx`; neither has an alpha channel, so
+  nothing blocks it.
 - Cancel the test orders in Shiprocket: `CHU-MSYPHPKB`, `TEST-CHU-MSYPPXDG`.
 - Two policy email addresses are still `[Customer care email]` and
   `[Grievance Officer email]` in `src/data/policies.ts`. The e-commerce rules

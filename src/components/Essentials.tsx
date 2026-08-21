@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { m, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
-import featuredImg from '../assets/featured_product.png';
+import featuredImg from '../assets/essentials-moisturizer.jpg';
 
 /**
  * Every claim here is traceable to the pack copy or to the client's content

@@ -1,11 +1,12 @@
 import bottleImg from '../assets/bottle.png';
-import tubeImg from '../assets/tube.png';
 import foundationImg from '../assets/product-foundation.jpg';
 import concealerImg from '../assets/product-concealer.jpg';
 import moisturiserImg from '../assets/product-moisturiser.jpg';
 import correctorImg from '../assets/product-colour-corrector.jpg';
 import antiShineImg from '../assets/product-anti-shine-powder.jpg';
 import sunscreenImg from '../assets/hero-sunscreen.jpg';
+import hydraPrimerImg from '../assets/product-hydra-primer.jpg';
+import settingSprayImg from '../assets/product-setting-spray.jpg';
 import { CATALOG, ROUTINE, catalogById, catalogBySku } from './catalog';
 import type { Product, Variant } from '../commerce/types';
 
@@ -33,15 +34,18 @@ export type { Product, Variant };
  *          off. Light ground.
  *   tile   No photograph exists. Draws the brand device instead.
  *
- * The `tile` case exists because the alternative was worse. Hydra Primer and
- * Setting Spray have no shots, and the nearest cutouts in the asset set are a
- * bottle whose label reads LUMINOUS MATTE FOUNDATION and a tube — so those two
- * cards were advertising the wrong product on a page where people buy things.
- * A tile shows no product rather than a wrong one, and being dark it keeps the
- * grid's rhythm instead of punching two white holes in it.
+ * Every row now has a photograph, so nothing renders a `tile` today. The case
+ * is kept because it is the honest answer to a product arriving before its
+ * shot does: it shows no product rather than a wrong one, and being dark it
+ * keeps the grid's rhythm instead of punching a white hole in it. That is not
+ * hypothetical — Hydra Primer and Setting Spray sat on tiles precisely because
+ * the nearest cutouts to hand were a bottle labelled LUMINOUS MATTE FOUNDATION
+ * and a generic tube, which would have advertised the wrong product on a page
+ * where people buy things.
  *
- * TODO — replace both with real photography. `shot` goes back to 'pack' and the
- * tile disappears on its own.
+ * Those two are now cropped from the primer/setting-spray hero photograph
+ * rather than shot separately, framed above the cap-to-label band so each fills
+ * a 4:5 frame like the other six.
  */
 type Imagery = { image?: string; thumb: string; shot: 'pack' | 'cutout' | 'tile' };
 
@@ -52,10 +56,8 @@ const IMAGERY: Record<string, Imagery> = {
   'colour-corrector': { image: correctorImg, thumb: correctorImg, shot: 'pack' },
   'anti-shine-powder': { image: antiShineImg, thumb: antiShineImg, shot: 'pack' },
   sunscreen: { image: sunscreenImg, thumb: sunscreenImg, shot: 'pack' },
-  // Thumbs still point at a cutout: the cart line is 48px wide, where a tile
-  // would be illegible and the wrong-label problem is invisible at that size.
-  'hydra-primer': { thumb: bottleImg, shot: 'tile' },
-  'setting-spray': { thumb: tubeImg, shot: 'tile' },
+  'hydra-primer': { image: hydraPrimerImg, thumb: hydraPrimerImg, shot: 'pack' },
+  'setting-spray': { image: settingSprayImg, thumb: settingSprayImg, shot: 'pack' },
 };
 
 export const products: Product[] = CATALOG.map((item) => ({
