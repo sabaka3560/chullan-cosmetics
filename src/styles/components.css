@@ -4,12 +4,33 @@
 
 /* ── Announcement bar ─────────────────────────────────────────────────── */
 
+/*
+ * The bar's height and the nav's offset are one number.
+ *
+ * They were two: the bar was `height: 34px` and the nav was `top: 34px`. That
+ * held only while the announcement was one line — the content brief's version
+ * is about seventy characters, which wraps on a phone, and the second line went
+ * straight underneath a nav that had no idea the bar had grown.
+ */
+:root {
+  --announce-h: 34px;
+}
+
+@media (max-width: 860px) {
+  :root {
+    --announce-h: 48px;
+  }
+}
+
 .announce {
   position: relative;
   z-index: 101;
-  height: 34px;
+  height: var(--announce-h);
   display: grid;
   place-items: center;
+  padding-inline: 16px;
+  text-align: center;
+  line-height: 1.35;
   background: var(--void);
   color: var(--void-ink-3);
   font-size: var(--t-micro);
@@ -24,7 +45,7 @@
   position: fixed;
   /* Sits just below the announcement bar at rest; once that bar has scrolled
      away the nav takes the top edge itself. */
-  top: 34px;
+  top: var(--announce-h);
   left: 0;
   right: 0;
   z-index: 100;
