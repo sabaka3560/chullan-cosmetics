@@ -1,34 +1,34 @@
-# Pending before launch
+# Pending
 
-The site is technically complete. What remains is **content and configuration** —
-none of it requires code changes, and all of it can be edited after the site is
-live without a rebuild of anything structural.
+**The store is live and taking real payments.** What remains is content, not
+code — none of it requires a structural change, and all of it can be edited
+while the site is running.
 
 Ordered by consequence, not by effort.
 
 ---
 
-## 1. The testimonials are written copy, not real reviews
+## 1. There is no social proof on the site — RESOLVED, and worth keeping resolved
 
-**Where:** `src/components/Reviews.tsx`
-**Risk:** legal
+**Where:** `src/components/Reviews.tsx` (unmounted), `src/data/catalog.ts`
+**Risk:** was legal; now cosmetic
 
-Every quote, name and star rating in the testimonials section was written to
-fill the layout. The content brief renamed the badge from "Verified buyer" to
+The testimonials and the star ratings are gone. Every quote, name and rating in
+that section was written to fill the layout, and the brief labelled them with
 professional roles — *Salon professional*, *Bridal MUA*, *Makeup artist* — which
-turns an invented sentence into a sourced professional endorsement.
+turns an invented sentence into a sourced professional endorsement. The Consumer
+Protection (E-Commerce) Rules 2020 treat that as a misleading trade practice,
+and it stopped being theoretical the moment real money started moving.
 
-The Consumer Protection (E-Commerce) Rules 2020 treat a fabricated
-representation of that kind as a misleading trade practice. This is the one
-pending item that is not merely unfinished but actively risky once real money is
-moving.
+The per-product `rating` / `reviews` counts (212, 148, 118 …) went with them for
+the same reason: quieter, but on every card rather than on three testimonials.
+They were never in the schema.org markup, so nothing was claiming them to search
+engines.
 
-**To resolve:** replace all three with real, attributable reviews, or delete the
-section. The names are currently the literal string "Placeholder name" so nothing
-ships looking accidentally real.
-
-Related: `rating` and `reviews` counts in `src/data/catalog.ts` (212, 148, 118 …)
-are also invented, and appear as star ratings on every product card.
+**To restore, once there are real reviews:** re-import `Reviews` in
+`src/pages/Home.tsx`, and put `<Rating>` back in `ProductCard` and the product
+page. The component and the catalog fields are all intact. Do not restore either
+with invented numbers.
 
 ---
 
@@ -149,6 +149,31 @@ for AI answers or only for Google.
 ---
 
 # Configuration, not content
+
+## Security posture
+
+Headers are set in `vercel.json` and mirrored onto `vite preview` in
+`vite.config.ts` so the policy can be tested before it reaches a live checkout —
+`tests/e2e/security.spec.ts` asserts the two copies agree and that nothing the
+site needs is blocked by them.
+
+The Content-Security-Policy allows `checkout.razorpay.com` **and**
+`cdn.razorpay.com`. The second is not optional: Razorpay's checkout script pulls
+its risk-detection bundle from the CDN, and a policy naming only the first
+blocks it — which does not surface as an error, only as a checkout that quietly
+stops working. That was caught by testing the policy locally rather than in
+production.
+
+`frame-ancestors 'none'` and `X-Frame-Options: DENY` are the ones that matter
+most here: without them the checkout can be framed and overlaid, and the
+victim's own click authorises a payment they cannot see.
+
+**Still open:** `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` are scoped to
+Preview *and* Production from a single value, and that value is now the **live**
+key. Any preview deployment charges real cards. Previews sit behind Vercel's
+Deployment Protection so this is not public exposure, but it means you cannot
+safely test a branch. Untick Preview on both, then add regenerated test keys
+scoped to Preview and Development.
 
 ## Razorpay live keys
 
