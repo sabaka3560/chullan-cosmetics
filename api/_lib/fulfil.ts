@@ -26,6 +26,33 @@ export function totalsFor(cart: PricedCart, method: PaymentMethod) {
   return orderTotals(cart.subtotalMinor, method);
 }
 
+/**
+ * Whether an amount actually taken is a legitimate total for this bag.
+ *
+ * Used before shipping anything against a payment, by both the browser path and
+ * the webhook. A bag swapped after payment prices to something wildly different
+ * — ten Pro Glow foundations against one powder is ₹18,000 against ₹795 — so
+ * this is a coarse gate on purpose. It is not trying to catch rounding; it is
+ * trying to catch goods that were never paid for.
+ *
+ * Two totals are accepted, and the second is the one worth explaining. The
+ * Razorpay order is created for the subtotal alone, but Magic Checkout then
+ * asks `/api/shipping-info` what delivery costs and adds it before charging.
+ * So the captured payment is legitimately larger than the order was created
+ * for, by exactly our own shipping fee. Comparing only against the subtotal
+ * would reject real orders — and in the webhook, which is the path that exists
+ * to rescue an order nobody is watching, it would do so silently.
+ *
+ * An unreadable amount does not block. Refusing to ship goods that were paid
+ * for because a number could not be parsed is the worse of the two failures,
+ * and the alternative reading is already logged by the caller.
+ */
+export function paidAmountMatches(paidMinor: number, cart: PricedCart): boolean {
+  if (!Number.isFinite(paidMinor)) return true;
+  const { totalMinor } = totalsFor(cart, 'Prepaid');
+  return paidMinor === cart.subtotalMinor || paidMinor === totalMinor;
+}
+
 export function buildOrderPayload({
   reference,
   address,

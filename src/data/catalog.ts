@@ -26,7 +26,9 @@
  * │    a legal problem, not just an inaccuracy.                              │
  * └──────────────────────────────────────────────────────────────────────────┘
  */
-import type { CatalogItem, Money, Variant } from '../commerce/types';
+/* `.js` required — see the note in `commerce/policy.ts`. This catalog is the
+   single source the serverless re-pricing reads, so Node resolves it too. */
+import type { CatalogItem, Money, Variant } from '../commerce/types.js';
 
 /**
  * What one unit of a given shade costs.

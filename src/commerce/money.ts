@@ -1,4 +1,6 @@
-import type { Currency, Money } from './types';
+/* `.js` required — see the note in `policy.ts`. Reached by the serverless
+   pricing code, which Vercel typechecks with node16 resolution. */
+import type { Currency, Money } from './types.js';
 
 /**
  * Currency lives here as one constant, and the server imports this same value

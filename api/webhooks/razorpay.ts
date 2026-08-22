@@ -5,7 +5,7 @@ import { ShiprocketError } from '../_lib/shiprocket.js';
 import { InvalidCartError, priceCart } from '../_lib/pricing.js';
 import { InvalidAddressError } from '../_lib/address.js';
 import { isRazorpayConfigured, razorpayClient } from '../_lib/razorpay.js';
-import { buildOrderPayload, placeOrder, totalsFor } from '../_lib/fulfil.js';
+import { buildOrderPayload, paidAmountMatches, placeOrder, totalsFor } from '../_lib/fulfil.js';
 import { IncompleteNotesError, fromNotes } from '../_lib/pending.js';
 
 /**
@@ -169,10 +169,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
      * Prices can move between a payment being taken and a webhook arriving, and
      * a mismatch means the goods about to be shipped are not the goods that
      * were paid for. That needs a human, not an automatic shipment.
+     *
+     * The comparison allows the subtotal *or* the subtotal plus our shipping
+     * fee, because Magic Checkout adds delivery on top of the amount the order
+     * was created for — see `paidAmountMatches`. This previously compared
+     * against the subtotal alone, which would have refused every real order
+     * that paid for shipping, on the one path where nobody is watching.
      */
     const { totalMinor } = totalsFor(cart, 'Prepaid');
     const captured = Number(payment.amount);
-    if (Number.isFinite(captured) && captured !== cart.subtotalMinor) {
+    if (!paidAmountMatches(captured, cart)) {
       console.error(
         '[webhook] AMOUNT MISMATCH — not shipping',
         pending.reference,

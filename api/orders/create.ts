@@ -3,9 +3,12 @@ import { validatePaymentVerification } from 'razorpay/dist/utils/razorpay-utils.
 import { isConfigured } from '../_lib/env.js';
 import { ShiprocketError } from '../_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
+import type { PricedCart } from '../_lib/pricing.js';
 import { InvalidAddressError, parseAddress } from '../_lib/address.js';
+import type { Address } from '../_lib/address.js';
+import { IncompleteNotesError, fromNotes } from '../_lib/pending.js';
 import { isRazorpayConfigured, isTestMode, razorpayClient, razorpayConfig } from '../_lib/razorpay.js';
-import { buildOrderPayload, placeOrder, totalsFor } from '../_lib/fulfil.js';
+import { buildOrderPayload, paidAmountMatches, placeOrder, totalsFor } from '../_lib/fulfil.js';
 import type { PaymentMethod } from '../_lib/fulfil.js';
 
 /**
@@ -20,9 +23,31 @@ import type { PaymentMethod } from '../_lib/fulfil.js';
  * converge on one record in the panel that fulfilment already works from.
  *
  * The cart is re-priced here from the catalog rather than trusted from the
- * request, exactly as everywhere else. For prepaid there is a second reason:
- * the amount actually captured must be checked against what the order claims,
- * or a tampered client could pay for one item and be shipped ten.
+ * request, exactly as everywhere else.
+ *
+ *
+ * WHY THE PREPAID BAG DOES NOT COME FROM THE REQUEST
+ *
+ * Re-pricing alone is not enough here, and the gap is worth naming because
+ * every individual check passes while it is open.
+ *
+ * Razorpay's signature is an HMAC over `order_id|payment_id`. It proves a
+ * payment exists and belongs to that order. There is no basket inside it and it
+ * says nothing about goods. So if the bag arrives in the same request as the
+ * signature, a buyer can pay for the cheapest thing in the catalog, keep the
+ * signature they were legitimately given, and post it back beside a different,
+ * larger bag: real signature, real payment, real SKUs, dutifully re-priced — to
+ * a total nobody paid. Ten Pro Glow foundations shipped against ₹795.
+ *
+ * The bag is therefore read from the Razorpay order's own `notes`, fetched over
+ * an authenticated connection, which is the same source and the same reasoning
+ * the webhook uses. The request supplies the payment proof and nothing else.
+ *
+ * Where notes are missing — an order created before they were stored — the
+ * request is used, but only if re-pricing it lands exactly on the amount the
+ * Razorpay order was created for. That figure came from the server at session
+ * time, so it is ours rather than the caller's, and a swapped bag cannot match
+ * it.
  */
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
@@ -52,28 +77,30 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const body = request.body as Record<string, unknown>;
     const method: PaymentMethod = body?.paymentMethod === 'COD' ? 'COD' : 'Prepaid';
 
-    const address = parseAddress(body?.address);
-    const cart = priceCart(parseLines(body));
-    const { totalMinor } = totalsFor(cart, method);
-
     /*
      * Ours, and unique. Shiprocket rejects a repeat, which is what makes the
      * webhook safe to run alongside this: whichever arrives second is refused
      * rather than shipping the same goods twice.
      *
-     * For a prepaid order the reference is not minted here — it was minted when
-     * the Razorpay order was created and lives in its notes. Reading it back
-     * means this path and the webhook converge on one Shiprocket record. Cash
-     * on delivery has no Razorpay order, so it mints its own.
+     * Cash on delivery has no Razorpay order to carry a reference, so it mints
+     * its own. Prepaid overwrites this with the one stored at session time.
      */
     let reference = `${isTestMode() ? 'TEST-' : ''}CHU-${Date.now().toString(36).toUpperCase()}`;
+    let address: Address;
+    let cart: PricedCart;
 
-    /*
-     * Prepaid must prove the payment before an order exists. Creating first and
-     * verifying after would mean a failed signature leaves a real shipment in
-     * the panel that somebody has to notice and cancel by hand.
-     */
-    if (method === 'Prepaid') {
+    if (method === 'COD') {
+      // Nothing has been paid, so there is no authenticated record to read
+      // from: the request is all there is, and re-pricing is what protects the
+      // amount that will be collected on the doorstep.
+      address = parseAddress(body?.address);
+      cart = priceCart(parseLines(body));
+    } else {
+      /*
+       * Prepaid must prove the payment before an order exists. Creating first
+       * and verifying after would mean a failed signature leaves a real
+       * shipment in the panel that somebody has to notice and cancel by hand.
+       */
       if (!isRazorpayConfigured()) {
         return response.status(501).json({ error: 'not_configured' });
       }
@@ -96,21 +123,57 @@ export default async function handler(request: VercelRequest, response: VercelRe
       }
 
       /*
-       * Read after the signature is verified, so this is a lookup of an order
-       * the buyer has provably paid for. If the note is missing — an order made
-       * before this existed, say — the locally minted reference above stands,
-       * and the worst case is the old behaviour rather than a failed checkout.
+       * Fetched after the signature is verified, so this is a lookup of an
+       * order the buyer has provably paid for — and it is the authority for
+       * what to ship, not the request body.
        */
+      const rzpOrder = (await razorpayClient().orders.fetch(orderId)) as {
+        notes?: unknown;
+        amount?: number | string;
+      };
+      const paidMinor = Number(rzpOrder.amount);
+
       try {
-        const rzpOrder = (await razorpayClient().orders.fetch(orderId)) as {
-          notes?: Record<string, unknown>;
-        };
-        const stored = rzpOrder.notes?.reference;
-        if (typeof stored === 'string' && stored) reference = stored;
+        const pending = fromNotes(rzpOrder.notes);
+        reference = pending.reference;
+        address = pending.address;
+        cart = priceCart(pending.lines);
       } catch (cause) {
-        console.warn('[orders/create] could not read order notes', orderId, cause);
+        if (!(cause instanceof IncompleteNotesError)) throw cause;
+        /*
+         * An order predating the notes format. The request is the only record
+         * of the bag, so it is used — but it has to land exactly on the amount
+         * this order was created for, which the server computed at session time
+         * and the caller cannot influence. A swapped bag prices to a different
+         * number and is refused below.
+         */
+        console.warn('[orders/create] no notes on', orderId, '— falling back to request');
+        address = parseAddress(body?.address);
+        cart = priceCart(parseLines(body));
+      }
+
+      /*
+       * The last gate, and it applies to both branches above.
+       *
+       * In the notes branch a mismatch means the catalog moved between payment
+       * and fulfilment, so the goods are not the goods that were paid for. In
+       * the fallback branch it is the check doing the actual work. Either way
+       * it needs a person, not an automatic shipment.
+       */
+      if (!paidAmountMatches(paidMinor, cart)) {
+        console.error(
+          '[orders/create] AMOUNT MISMATCH — not shipping',
+          orderId,
+          'paid',
+          paidMinor,
+          'cart',
+          cart.subtotalMinor,
+        );
+        return response.status(400).json({ error: 'amount_mismatch' });
       }
     }
+
+    const { totalMinor } = totalsFor(cart, method);
 
     const created = await placeOrder(
       buildOrderPayload({ reference, address, cart, method, pickupLocation }),

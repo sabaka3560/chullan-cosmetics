@@ -1,4 +1,16 @@
-import type { Money } from './types';
+/*
+ * The `.js` is required, not a slip.
+ *
+ * This file is read by the serverless functions as well as by the browser
+ * bundle, and Vercel typechecks those with node16 module resolution, which
+ * rejects an extensionless relative import. Vite resolves `./types.js` to
+ * `./types.ts` happily, so one spelling serves both.
+ *
+ * Its browser-only siblings keep the bare form, because nothing on the server
+ * ever reaches them. The rule is simply: anything in the functions' import
+ * graph carries the extension.
+ */
+import type { Money } from './types.js';
 
 /**
  * Storefront rules that more than one component has to agree about.
