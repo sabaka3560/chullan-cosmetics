@@ -3,7 +3,6 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { Layout } from '../components/Layout';
-import { Rating } from '../components/Rating';
 import { Reveal, revealGroup } from '../components/Reveal';
 import { ProductCard } from '../components/ProductCard';
 import { DeliveryCheck } from '../components/DeliveryCheck';
@@ -119,7 +118,8 @@ export default function Product() {
                   <span className="pdp__price">
                     {selected ? formatMoney(unitPriceMinor(product, selected)) : null}
                   </span>
-                  <Rating value={product.rating} count={product.reviews} />
+                  {/* Star rating removed with the testimonials — the review
+                      count behind it was invented. See `ProductCard`. */}
                 </div>
 
                 <p className="deck pdp__blurb">{product.blurb}</p>

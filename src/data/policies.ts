@@ -55,16 +55,14 @@ export const legalEntity = {
   phone: '+91 95267 46656',
 
   /*
-   * TODO — the two email addresses are still outstanding and are required.
-   *
-   * Left as visible markers rather than filled with a best guess: a wrong
-   * address on a grievance page is worse than an obviously missing one, because
-   * a buyer writes to it and nobody ever answers. A phone number alone also
-   * makes the business reachable only in office hours, which is a poor fit for
-   * a complaint window measured in hours.
+   * One address serves both roles for now. That is a real decision rather than
+   * a shortcut: the rules require a grievance contact that is monitored and
+   * answered within the stated window, and one inbox somebody actually reads
+   * beats two where the second is forwarded and forgotten. Split them when
+   * there is a separate person behind the second one.
    */
-  email: '[Customer care email]',
-  grievanceEmail: '[Grievance Officer email]',
+  email: 'chullantech@gmail.com',
+  grievanceEmail: 'chullantech@gmail.com',
 };
 
 export const policies: Policy[] = [

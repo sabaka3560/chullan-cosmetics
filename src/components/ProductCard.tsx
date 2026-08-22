@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Rating } from './Rating';
 import { LazyBottleStage } from '../three/LazyBottleStage';
 import { revealChild } from './Reveal';
 import { useCart } from '../commerce/CartProvider';
@@ -183,9 +182,13 @@ export function ProductCard({
             {product.name}
           </Link>
         </h3>
+        {/* No star rating. The counts behind it (212, 148, 118 …) were invented
+            to fill the layout, and a fabricated review count beside a price is
+            the same misleading representation as a fabricated testimonial —
+            quieter, and on every card rather than three. `Rating` and the
+            catalog fields are both still here for when the numbers are real. */}
         <div className="card__meta">
           <span className="card__price">{caption}</span>
-          <Rating value={product.rating} count={product.reviews} />
         </div>
         <span className="card__size">{product.size}</span>
 

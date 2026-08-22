@@ -5,7 +5,6 @@ import { BestSellers } from '../components/BestSellers';
 import { Showcase } from '../components/Showcase';
 import { Essentials } from '../components/Essentials';
 import { Lifestyle } from '../components/Lifestyle';
-import { Reviews } from '../components/Reviews';
 import { Faq } from '../components/Faq';
 import { Newsletter } from '../components/Newsletter';
 import { HOME_FAQ } from '../data/faq';
@@ -56,7 +55,13 @@ export default function Home() {
       <BestSellers />
       <Essentials />
       <Lifestyle />
-      <Reviews />
+      {/* Testimonials are unmounted, not deleted — `components/Reviews.tsx` is
+          intact and ready for real, attributable quotes. Every one it carried
+          was written to fill the layout, and the brief labelled them with
+          professional roles, which turns an invented sentence into a sourced
+          endorsement. That is a misleading representation under the Consumer
+          Protection (E-Commerce) Rules now that the store takes real money.
+          Restoring it is one import and one line. */}
       <Faq eyebrow="Questions" title="Frequently asked" items={HOME_FAQ} id="faq" />
       <Newsletter />
     </Layout>
