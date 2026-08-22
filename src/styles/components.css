@@ -1997,11 +1997,15 @@
   opacity: 0.66;
 }
 
-/* Interactive controls have to out-rank the stretched layer or the whole card
-   navigates instead of adding to the bag. */
-.card .swatches {
-  position: relative;
-  z-index: 2;
+/* The shade count is a caption, not a control. Letting the pointer through
+   means a tap on it does what the shopper meant — open the product, where the
+   shades actually are — instead of landing on dead pixels in the one strip of
+   the card that looks most like a button. */
+.card__add--shades {
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.86);
+  font-weight: 500;
+  color: var(--ink-2, var(--ink));
 }
 
 /* ============================================================================

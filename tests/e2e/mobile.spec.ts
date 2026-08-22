@@ -296,7 +296,7 @@ test.describe('the bag works on a phone', () => {
     await page.goto('/shop');
     await page.waitForLoadState('networkidle');
 
-    await page.locator('.card__add').first().click();
+    await page.locator('button.card__add').first().click();
     await page.getByRole('button', { name: /^Bag/ }).click();
 
     const drawer = page.getByRole('dialog', { name: 'Your bag' });

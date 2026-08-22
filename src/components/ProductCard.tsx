@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Rating } from './Rating';
@@ -23,8 +22,26 @@ import type { Product } from '../commerce/types';
  * Wrapping the media in a second anchor to the same place would make every card
  * announce itself twice to a screen reader and double the tab stops in the grid.
  *
- * Quick-add and the shade swatches sit above that stretched layer, so choosing
- * a shade or adding to the bag never navigates by accident.
+ * Quick-add sits above that stretched layer, so adding to the bag never
+ * navigates by accident.
+ *
+ *
+ * WHY SHADES ARE NOT CHOSEN HERE
+ *
+ * Choosing a shade is the detail page's job. A grid is for deciding which
+ * product you want; a swatch row in it asks eight questions before the shopper
+ * has answered the first one, and on a phone it is eight 28px targets competing
+ * with the card's own tap area.
+ *
+ * That leaves quick-add with a problem worth being deliberate about. A card
+ * with no shade picker still has to add *something*, and the honest answer for
+ * a product with eight shades is that it cannot know which — defaulting to the
+ * first one means a buyer who taps Add on a foundation gets the palest shade in
+ * the range and no indication that a choice was ever made. So multi-shade
+ * products do not offer quick-add at all: the slot carries the shade count
+ * instead, and the card's own link goes to the page where the choice belongs.
+ * Everything with a single variant keeps the button, because there it is
+ * unambiguous.
  */
 export function ProductCard({
   product,
@@ -43,36 +60,19 @@ export function ProductCard({
 }) {
   const { add, lastAdded } = useCart();
 
-  // Holds the SKU and derives the variant, for the same reason the detail page
-  // does: a stored variant object can outlive the product it belongs to, and
-  // the failure mode is a card that displays one product and adds another.
-  const [selectedSku, setSelectedSku] = useState<string | null>(null);
-  const selected =
-    product.variants.find((variant) => variant.sku === selectedSku) ?? product.variants[0];
-
   const hasChoice = product.variants.length > 1;
+  /* The only variant there is, for the products that quick-add. Read straight
+     from the catalog rather than held in state: with the picker gone there is
+     nothing to hold, and a stored variant object can outlive the product it
+     belongs to — a card that displays one product and adds another. */
+  const only = product.variants[0];
+  const justAdded = lastAdded === only.sku;
 
   /*
-   * Before a shade is chosen the caption sells the range — "8 shades" is the
-   * fact worth advertising on a shelf, and it is what the content brief asks
-   * for. After a tap it becomes the shade that was picked, because at that
-   * point the shopper is asking a different question: not how many are there,
-   * but which one is selected. The button's own label always names the shade,
-   * so a screen reader never depends on this either way.
-   */
-  const shadeCaption = selectedSku
-    ? selected.label
-    : `${product.variants.length} shades`;
-  const justAdded = lastAdded === selected.sku;
-
-  /*
-   * Two different prices, and the difference matters.
-   *
-   * The caption advertises the range, because before a shade is chosen there is
-   * no single answer — "From ₹1,200" is the honest headline for a product whose
-   * shades are priced in tiers. The button quotes the shade actually selected,
-   * because that is the amount about to be charged, and a button that says
-   * ₹1,200 while taking ₹1,800 is the worst version of this component.
+   * "From ₹1,200" is the honest headline for a product whose shades are priced
+   * in tiers, and it is the *only* price this card can quote now that no shade
+   * is selected here. The single-variant button quotes its one real price, so
+   * the button can never say ₹1,200 while taking ₹1,800.
    *
    * Both derive from the variants, so a card can never advertise a spread that
    * the catalog no longer has.
@@ -82,7 +82,6 @@ export function ProductCard({
     range.min === range.max
       ? formatMoney(range.min)
       : `From ${formatMoney(range.min)}`;
-  const selectedPrice = formatMoney(unitPriceMinor(product, selected));
 
   // 3D Parallax hover logic
   const x = useMotionValue(0);
@@ -154,25 +153,27 @@ export function ProductCard({
           />
         )}
 
-        <button
-          type="button"
-          className="card__add"
-          onClick={() => add(selected.sku)}
-          disabled={!selected.inStock}
-          /* The label carries the shade so the button is unambiguous out of
-             context, which is how a screen reader reaches it. */
-          aria-label={
-            hasChoice
-              ? `Add ${product.name}, ${selected.label}, to bag`
-              : `Add ${product.name} to bag`
-          }
-        >
-          {!selected.inStock
-            ? 'Sold out'
-            : justAdded
-              ? 'Added'
-              : `Add — ${selectedPrice}`}
-        </button>
+        {hasChoice ? (
+          /* Not a control. It fills the slot the button would have taken so the
+             grid keeps one rhythm, and `pointer-events: none` lets the tap fall
+             through to the card's own link — which goes to the shade picker,
+             the thing a shopper is actually reaching for here. */
+          <span className="card__add card__add--shades">
+            {product.variants.length} shades
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="card__add"
+            onClick={() => add(only.sku)}
+            disabled={!only.inStock}
+            /* Names the product, so the button is unambiguous out of context —
+               which is how a screen reader reaches it. */
+            aria-label={`Add ${product.name} to bag`}
+          >
+            {!only.inStock ? 'Sold out' : justAdded ? 'Added' : `Add — ${formatMoney(unitPriceMinor(product, only))}`}
+          </button>
+        )}
       </div>
 
       <div className="card__body">
@@ -196,24 +197,6 @@ export function ProductCard({
           <p className="card__tagline">{product.tagline}</p>
         )}
 
-        {hasChoice && (
-          <div className="swatches" role="group" aria-label={`${product.name} shade`}>
-            {product.variants.map((variant) => (
-              <button
-                key={variant.sku}
-                type="button"
-                className="swatch"
-                data-selected={variant.sku === selected.sku}
-                disabled={!variant.inStock}
-                style={{ '--swatch': variant.swatch } as React.CSSProperties}
-                onClick={() => setSelectedSku(variant.sku)}
-                aria-pressed={variant.sku === selected.sku}
-                aria-label={variant.inStock ? variant.label : `${variant.label}, sold out`}
-              />
-            ))}
-            <span className="swatch__label">{shadeCaption}</span>
-          </div>
-        )}
       </div>
     </m.article>
   );

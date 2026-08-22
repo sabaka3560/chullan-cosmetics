@@ -235,7 +235,7 @@ test.describe('the cart holds together', () => {
   test('survives a reload', async ({ page }) => {
     await page.goto('/shop', { waitUntil: 'load' });
 
-    await page.locator('.card__add').first().click();
+    await page.locator('button.card__add').first().click();
     await expect(page.getByRole('button', { name: /^Bag, 1 item$/ })).toBeVisible();
 
     await page.reload({ waitUntil: 'load' });
@@ -247,7 +247,7 @@ test.describe('the cart holds together', () => {
 
   test('follows the buyer across pages', async ({ page }) => {
     await page.goto('/shop', { waitUntil: 'load' });
-    await page.locator('.card__add').first().click();
+    await page.locator('button.card__add').first().click();
 
     await page.goto('/shipping', { waitUntil: 'load' });
     await expect(page.getByRole('button', { name: /^Bag, 1 item$/ })).toBeVisible();
@@ -268,5 +268,55 @@ test.describe('the cart holds together', () => {
     await addToBag(page);
 
     await expect(drawer.locator('.line__name').nth(1)).toHaveText('Hydra Primer');
+  });
+});
+
+/*
+ * A grid is for choosing a product. A product page is for choosing a shade.
+ *
+ * The swatch row used to sit on both, which put eight decisions in front of a
+ * shopper who had not yet made the first one — and on a phone, eight 28px
+ * targets inside the card's own tap area.
+ *
+ * Removing it leaves one trap worth a test of its own. Quick-add still has to
+ * add *something*, and for a product with eight shades there is no defensible
+ * default: the first variant means a buyer who taps Add on a foundation gets
+ * the palest shade in the range and is never told a choice was made. So the
+ * button is absent exactly where the choice exists, and these pin that down in
+ * both directions — no picker in the grid, and the picker still on the page
+ * that owns it.
+ */
+test.describe('shades belong to the product page', () => {
+  test('no card in the range carries a shade picker', async ({ page }) => {
+    await page.goto('/shop', { waitUntil: 'load' });
+    await expect(page.locator('.card').first()).toBeVisible();
+    await expect(page.locator('.card .swatch')).toHaveCount(0);
+  });
+
+  test('a multi-shade product cannot be quick-added from the grid', async ({ page }) => {
+    await page.goto('/shop', { waitUntil: 'load' });
+
+    // Named, not indexed. This assertion is about Foundation having eight
+    // shades, not about where the routine order happens to put it today.
+    const foundation = page.locator('.card:has(a[href$="/product/foundation"])');
+    await expect(foundation).toBeVisible();
+
+    await expect(foundation.locator('button.card__add')).toHaveCount(0);
+    await expect(foundation.locator('.card__add--shades')).toHaveText(/8 shades/i);
+  });
+
+  test('a single-variant product still quick-adds', async ({ page }) => {
+    await page.goto('/shop', { waitUntil: 'load' });
+
+    const moisturiser = page.locator('.card:has(a[href$="/product/moisturiser"])');
+    await expect(moisturiser.locator('button.card__add')).toHaveCount(1);
+
+    await moisturiser.locator('button.card__add').click();
+    await expect(page.getByRole('button', { name: /^Bag, 1 item$/ })).toBeVisible();
+  });
+
+  test('the product page still chooses shades', async ({ page }) => {
+    await page.goto('/product/foundation', { waitUntil: 'load' });
+    await expect(page.locator('.swatch')).toHaveCount(8);
   });
 });
