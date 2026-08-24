@@ -2175,6 +2175,14 @@
   color: var(--ink);
 }
 
+/* The pack code, set quieter than the name it follows: it is a reference to
+   copy down when reordering, not the thing being chosen. The separator is a
+   character in the markup, so no margin is needed to keep the two apart. */
+.pdp__shade-code {
+  color: var(--ink-3, var(--ink-2));
+  font-variant-numeric: tabular-nums;
+}
+
 .swatch--lg {
   width: 26px;
   height: 26px;

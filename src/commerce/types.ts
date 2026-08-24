@@ -59,6 +59,18 @@ export type Variant = {
   /** Shade name. Shown in the picker, the cart line and the order. */
   label: string;
 
+  /**
+   * The brand's own shade code, as printed on the pack and the shade chart —
+   * `C1W1`, `FC01A`. Optional: only the tinted ranges have one.
+   *
+   * Separate from `sku` on purpose. The SKU is our inventory key and has to
+   * match Shiprocket character for character; this is what a buyer reads on a
+   * bottle when they want the same shade again, and what a makeup artist
+   * quotes. Tying the two together would mean a repackaging that changes the
+   * printed code silently breaks fulfilment.
+   */
+  code?: string;
+
   /** Approximate shade colour for the picker swatch. Cosmetic only. */
   swatch?: string;
 

@@ -108,23 +108,31 @@ imagery, and `shot: 'tile'` is currently unused.
 
 ---
 
-## 4. Foundation and Concealer shade names are placeholders
+## 4. Shade names — RESOLVED
 
 **Where:** `src/data/catalog.ts`
-**Risk:** a buyer cannot tell which shade they are ordering
 
-Shades are labelled `Shade 01` … `Shade 08` and their swatch colours are
-**interpolated along a fair-to-deep line, not sampled from the product**. They
-read as an ordered range on screen but they are not shade matches, and nobody
-should choose a foundation from them.
+Every shade now carries its real name, the brand's own pack code, and the hex
+value published on the client's shade charts. Nothing here is interpolated or
+sampled from a photograph any more.
 
-Anti-Shine Powder is the exception — Banana, Beige, Light Pink and White are the
-only shade names the brief actually documents.
+| Foundation — Pro Glow ₹1,800 | | Foundation & Concealer — Professional Base ₹1,200 | |
+| --- | --- | --- | --- |
+| Bisque | `C1W1` `#ffe1be` | Amber | `FC01A` `#b26009` |
+| Cashew | `C2W1` `#f8d2a5` | Espresso | `FC01E` `#986739` |
+| Almond | `C2W2` `#e5b397` | Cocoa | `FC01C` `#6d3e2a` |
+| Fawn | `C3W1` `#dcaa86` | | |
+| Hazel | `C3W2` `#d69b6c` | | |
 
-**To resolve:** real shade names and measured swatch values. Note the price tiers
-are attached to shade *position*, so if the ordering changes, re-check
-`tests/unit/catalog-brief.test.ts` — it pins which shades are ₹1,200 and which
-are ₹1,800.
+The chart's own division — five "Fair shades" on C-codes, three "Deep shades" on
+FC-codes — turned out to be exactly the existing price boundary, so the tiers
+did not move. The concealer's three shades are the same deep three, sharing
+name, code and colour, because they are matched to correct against them.
+
+**If a shade is ever renamed or re-sorted:** the price tier is attached to
+position in the array, so re-ordering silently re-prices the range.
+`tests/unit/catalog-brief.test.ts` pins name, code, tier and price together for
+all eight and will fail loudly if they drift apart.
 
 ---
 

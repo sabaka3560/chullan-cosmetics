@@ -128,8 +128,17 @@ export default function Product() {
               <Reveal delay={0.12}>
                 {hasChoice && (
                   <div className="pdp__shades">
+                    {/* The code is printed on the pack, so showing it here is
+                        what lets someone reorder the same shade a year later
+                        without holding the bottle up to the screen. */}
                     <p className="eyebrow">
                       Shade — <span className="pdp__shade-name">{selected.label}</span>
+                      {selected.code && (
+                        /* A real separator character, not a CSS margin. The gap
+                           has to survive being copied into a reorder email, and
+                           `BisqueC1W1` is what a margin alone produces there. */
+                        <span className="pdp__shade-code"> · {selected.code}</span>
+                      )}
                     </p>
                     <div className="swatches" role="group" aria-label="Choose a shade">
                       {product.variants.map((variant) => (
@@ -142,8 +151,13 @@ export default function Product() {
                           style={{ '--swatch': variant.swatch } as React.CSSProperties}
                           onClick={() => setSelectedSku(variant.sku)}
                           aria-pressed={variant.sku === selected.sku}
+                          /* The code goes in the accessible name too. A screen
+                             reader hearing eight shade names in a row has no
+                             other way to tell Amber from Espresso. */
                           aria-label={
-                            variant.inStock ? variant.label : `${variant.label}, sold out`
+                            [variant.label, variant.code, variant.inStock ? '' : 'sold out']
+                              .filter(Boolean)
+                              .join(', ')
                           }
                         />
                       ))}

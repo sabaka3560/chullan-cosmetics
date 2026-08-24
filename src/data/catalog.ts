@@ -18,10 +18,9 @@
  * │    and are not in the brief: shades 06-08 are Professional Base at       │
  * │    ₹1,200, shades 01-05 are Pro Glow at ₹1,800. Get these wrong and a    │
  * │    buyer is charged the wrong amount, silently.                          │
- * │  • Foundation and Concealer shade `label`/`swatch` — the brief gives     │
- * │    counts and a span ("fair neutral to deep warm") but no shade names,   │
- * │    so they stay numbered and the swatches are interpolated. Anti-Shine   │
- * │    Powder is the exception: its four shades are named in the brief.      │
+ * │  • Foundation and Concealer shades are now the client's published shade │
+ * │    charts — real names, real codes, real hex values. They were numbered │
+ * │    placeholders with interpolated swatches until 2026-08-24.            │
  * │  • `rating`/`reviews` — invented. Publishing fabricated review counts is │
  * │    a legal problem, not just an inaccuracy.                              │
  * └──────────────────────────────────────────────────────────────────────────┘
@@ -81,10 +80,10 @@ export const CATALOG: CatalogItem[] = [
     weightGrams: 140,
     dimensionsCm: { length: 5, width: 5, height: 11 },
     /*
-     * Eight steps walked from fair neutral to deep warm. The swatches are
-     * interpolated along that line rather than sampled from the product, so
-     * they read as an ordered range on screen — they are not shade matches and
-     * have to be replaced with measured values before anyone buys off them.
+     * Eight shades, fair neutral to deep warm, in the order the client's shade
+     * chart prints them: five fair, then three deep. That order is not
+     * cosmetic — the price tier below is attached to position, so re-sorting
+     * this list silently re-prices the range.
      */
     /*
      * Two tiers, two prices, and the shade decides which.
@@ -98,15 +97,26 @@ export const CATALOG: CatalogItem[] = [
      * Confirmed with the client 2026-08-20. The brief names both tiers but
      * prices only one, so this mapping does not exist in the document.
      */
+    /*
+     * Names, codes and swatch values are the client's own shade chart
+     * (`Chullan Foundation Shades`), not sampled from a photograph and not
+     * interpolated. The hex values are what the chart publishes, so what a
+     * buyer taps on screen is the colour the brand says the shade is.
+     *
+     * The chart's own split is the price split: five "Fair shades" carrying
+     * C-codes are Pro Glow, three "Deep shades" carrying FC-codes are
+     * Professional Base. The two tiers were already priced that way before the
+     * names existed, and the chart confirms the boundary rather than moving it.
+     */
     variants: [
-      { sku: 'CHU-FDN-30-01', label: 'Shade 01', swatch: '#f0d3b8', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
-      { sku: 'CHU-FDN-30-02', label: 'Shade 02', swatch: '#e8c2a1', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
-      { sku: 'CHU-FDN-30-03', label: 'Shade 03', swatch: '#dfae87', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
-      { sku: 'CHU-FDN-30-04', label: 'Shade 04', swatch: '#d3996d', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
-      { sku: 'CHU-FDN-30-05', label: 'Shade 05', swatch: '#c2855a', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
-      { sku: 'CHU-FDN-30-06', label: 'Shade 06', swatch: '#ab6f48', tier: 'Professional Base', inStock: true },
-      { sku: 'CHU-FDN-30-07', label: 'Shade 07', swatch: '#8f5a39', tier: 'Professional Base', inStock: true },
-      { sku: 'CHU-FDN-30-08', label: 'Shade 08', swatch: '#70452b', tier: 'Professional Base', inStock: true },
+      { sku: 'CHU-FDN-30-01', label: 'Bisque', code: 'C1W1', swatch: '#ffe1be', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
+      { sku: 'CHU-FDN-30-02', label: 'Cashew', code: 'C2W1', swatch: '#f8d2a5', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
+      { sku: 'CHU-FDN-30-03', label: 'Almond', code: 'C2W2', swatch: '#e5b397', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
+      { sku: 'CHU-FDN-30-04', label: 'Fawn', code: 'C3W1', swatch: '#dcaa86', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
+      { sku: 'CHU-FDN-30-05', label: 'Hazel', code: 'C3W2', swatch: '#d69b6c', tier: 'Pro Glow', priceMinor: 180000, inStock: true },
+      { sku: 'CHU-FDN-30-06', label: 'Amber', code: 'FC01A', swatch: '#b26009', tier: 'Professional Base', inStock: true },
+      { sku: 'CHU-FDN-30-07', label: 'Espresso', code: 'FC01E', swatch: '#986739', tier: 'Professional Base', inStock: true },
+      { sku: 'CHU-FDN-30-08', label: 'Cocoa', code: 'FC01C', swatch: '#6d3e2a', tier: 'Professional Base', inStock: true },
     ],
   },
   {
@@ -125,9 +135,13 @@ export const CATALOG: CatalogItem[] = [
     weightGrams: 140,
     dimensionsCm: { length: 5, width: 5, height: 11 },
     variants: [
-      { sku: 'CHU-CNC-30-01', label: 'Shade 01', swatch: '#e7bd97', inStock: true },
-      { sku: 'CHU-CNC-30-02', label: 'Shade 02', swatch: '#d09a6d', inStock: true },
-      { sku: 'CHU-CNC-30-03', label: 'Shade 03', swatch: '#b07a4f', inStock: true },
+      // The concealer chart publishes the same three deep shades as the
+      // foundation's Professional Base tier — same names, same codes, same hex.
+      // They are matched to correct against those shades, so sharing the
+      // identifiers is the point rather than a duplication to tidy away.
+      { sku: 'CHU-CNC-30-01', label: 'Amber', code: 'FC01A', swatch: '#b26009', inStock: true },
+      { sku: 'CHU-CNC-30-02', label: 'Espresso', code: 'FC01E', swatch: '#986739', inStock: true },
+      { sku: 'CHU-CNC-30-03', label: 'Cocoa', code: 'FC01C', swatch: '#6d3e2a', inStock: true },
     ],
   },
   {
