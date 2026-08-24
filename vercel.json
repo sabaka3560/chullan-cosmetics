@@ -1,5 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/product/hydra-primer",
+      "destination": "/product/primer",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

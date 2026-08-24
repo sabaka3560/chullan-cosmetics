@@ -19,7 +19,7 @@ const BRIEF: Record<string, { price: string; minor: number; from?: boolean; shad
   foundation:          { price: 'FROM ₹1,200', minor: 120000, from: true, shades: 8 },
   concealer:           { price: '₹1,200', minor: 120000, shades: 3 },
   moisturiser:         { price: '₹1,100', minor: 110000, shades: 1 },
-  'hydra-primer':      { price: '₹1,500', minor: 150000, shades: 1 },
+  primer:              { price: '₹1,500', minor: 150000, shades: 1 },
   'anti-shine-powder': { price: '₹795',   minor: 79500,  shades: 4 },
   'setting-spray':     { price: '₹1,200', minor: 120000, shades: 1 },
   'colour-corrector':  { price: '₹1,950', minor: 195000, shades: 1 },

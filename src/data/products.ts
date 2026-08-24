@@ -5,7 +5,7 @@ import moisturiserImg from '../assets/product-moisturiser.jpg';
 import correctorImg from '../assets/product-colour-corrector.jpg';
 import antiShineImg from '../assets/product-anti-shine-powder.jpg';
 import sunscreenImg from '../assets/product-sunscreen.jpg';
-import hydraPrimerImg from '../assets/product-hydra-primer.jpg';
+import primerImg from '../assets/product-primer.jpg';
 import settingSprayImg from '../assets/product-setting-spray.jpg';
 import { CATALOG, ROUTINE, catalogById, catalogBySku } from './catalog';
 import type { Product, Variant } from '../commerce/types';
@@ -38,14 +38,14 @@ export type { Product, Variant };
  * is kept because it is the honest answer to a product arriving before its
  * shot does: it shows no product rather than a wrong one, and being dark it
  * keeps the grid's rhythm instead of punching a white hole in it. That is not
- * hypothetical — Hydra Primer and Setting Spray sat on tiles precisely because
+ * hypothetical — Primer and Setting Spray sat on tiles for a release, because
  * the nearest cutouts to hand were a bottle labelled LUMINOUS MATTE FOUNDATION
  * and a generic tube, which would have advertised the wrong product on a page
  * where people buy things.
  *
- * Those two are now cropped from the primer/setting-spray hero photograph
- * rather than shot separately, framed above the cap-to-label band so each fills
- * a 4:5 frame like the other six.
+ * Both now carry real photography of the actual packaging, as do Foundation,
+ * Moisturiser and Sunscreen — shot as one set, so the grid reads as a range
+ * rather than a collection of sources.
  */
 type Imagery = { image?: string; thumb: string; shot: 'pack' | 'cutout' | 'tile' };
 
@@ -56,7 +56,7 @@ const IMAGERY: Record<string, Imagery> = {
   'colour-corrector': { image: correctorImg, thumb: correctorImg, shot: 'pack' },
   'anti-shine-powder': { image: antiShineImg, thumb: antiShineImg, shot: 'pack' },
   sunscreen: { image: sunscreenImg, thumb: sunscreenImg, shot: 'pack' },
-  'hydra-primer': { image: hydraPrimerImg, thumb: hydraPrimerImg, shot: 'pack' },
+  primer: { image: primerImg, thumb: primerImg, shot: 'pack' },
   'setting-spray': { image: settingSprayImg, thumb: settingSprayImg, shot: 'pack' },
 };
 

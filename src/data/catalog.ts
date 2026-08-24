@@ -162,8 +162,17 @@ export const CATALOG: CatalogItem[] = [
     variants: only('CHU-MST-100'),
   },
   {
-    id: 'hydra-primer',
-    name: 'Hydra Primer',
+    /*
+     * `Primer`, not `Hydra Primer`. The pack itself reads PRIMER, and a listing
+     * that names the product something the box does not is the kind of small
+     * mismatch a buyer notices when the parcel arrives.
+     *
+     * The id moved with the name, so the URL is `/product/primer`.
+     * `vercel.json` redirects the old path permanently, so any link shared
+     * before the rename still resolves instead of hitting a dead route.
+     */
+    id: 'primer',
+    name: 'Primer',
     line: 'professional',
     category: 'Face',
     size: '30ml · 1fl oz',
