@@ -4,6 +4,8 @@ import { Menu, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../commerce/CartProvider';
 import { MobileMenu } from './MobileMenu';
+import logoBone from '../assets/logo-bone.png';
+import logoInk from '../assets/logo-ink.png';
 
 const SOLID_AT = 24;
 const CLEAR_AT = 8;
@@ -46,7 +48,49 @@ export function Navbar() {
           <Link className="nav__link" to="/about">Story</Link>
         </div>
 
-        <Link className="nav__wordmark" to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Chullan, home">Chullan</Link>
+        {/*
+          Two copies of the mark, stacked and cross-faded, rather than one image
+          recoloured by a filter.
+
+          The bar is transparent over the dark hero and bone once you scroll into
+          the light half, so the logo has to be light in one state and dark in
+          the other. The artwork is a single flat black, and `filter: invert()`
+          would also invert the gold sweep that crosses the mark. Two tinted PNGs
+          are 30kB each and let the swap ride the same 220ms/140ms curve the
+          navigation's own colour change uses, so the mark and the links change
+          together rather than racing.
+
+          Both carry `alt=""`: the link already has an accessible name, and
+          naming the image too would make a screen reader announce the brand
+          twice for one control.
+        */}
+        <Link
+          className="nav__wordmark"
+          to="/"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Chullan, home"
+        >
+          <img
+            className="nav__logo nav__logo--bone"
+            src={logoBone}
+            alt=""
+            width={900}
+            height={425}
+            /* Above the fold on every route. A logo that fades in after the
+               page has settled reads as a fault, not as a transition. */
+            fetchPriority="high"
+            decoding="sync"
+          />
+          <img
+            className="nav__logo nav__logo--ink"
+            src={logoInk}
+            alt=""
+            width={900}
+            height={425}
+            fetchPriority="high"
+            decoding="sync"
+          />
+        </Link>
 
         <div className="nav__group nav__group--end">
           <Link className="nav__link" to="/shipping">Shipping</Link>

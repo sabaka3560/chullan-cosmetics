@@ -142,20 +142,67 @@
   transform-origin: left;
 }
 
+/*
+ * The mark is now artwork, not type.
+ *
+ * The drawn border and the padding are gone with the text: the supplied logo
+ * already contains its own rule box, and keeping the CSS one would put a second
+ * frame a few pixels outside the first.
+ *
+ * `line-height: 0` because the link is an inline element wrapping a block
+ * image, and without it the line box adds a few pixels of descender space under
+ * the logo — enough to sit the mark visibly off-centre in a 60px bar.
+ */
+/*
+ * A one-cell grid, so both copies of the mark occupy the same space and each is
+ * still sized by its own height rule.
+ *
+ * Absolute positioning was the obvious way to stack them and the wrong one: the
+ * touch-target rule below gives this link a 44px minimum height on a phone, and
+ * an `inset: 0` copy would stretch to fill that while the in-flow copy stayed at
+ * its natural size — the two marks would be different heights, and the crossfade
+ * would visibly resize.
+ */
 .nav__wordmark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.125rem, 1.5vw, 1.4rem);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 1;
-  border: 2px solid currentColor;
-  padding: 8px 16px;
-  border-radius: 0;
+  display: grid;
+  place-items: center;
   position: relative;
+  line-height: 0;
   /* Keeps the sweep inside the box, so it reads as light crossing the mark
      rather than a band travelling across the navigation bar. */
   overflow: hidden;
+}
+
+.nav__logo {
+  grid-area: 1 / 1;
+  display: block;
+  /* Sized by height: the bar's height is the constraint, and the mark's own
+     ratio should decide the width. */
+  height: clamp(30px, 3.4vw, 40px);
+  width: auto;
+  /* Matches the navigation's own `color 220ms linear 140ms`, so the mark and
+     the links cross over together rather than one chasing the other. */
+  transition: opacity 220ms linear 140ms;
+}
+
+.nav__logo--ink {
+  opacity: 0;
+}
+
+/* Transparent bar over the dark hero: the light mark. Bone bar once scrolled:
+   the ink one. */
+.nav[data-state='solid'] .nav__logo--bone {
+  opacity: 0;
+}
+
+.nav[data-state='solid'] .nav__logo--ink {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__logo {
+    transition: none;
+  }
 }
 
 /*
@@ -608,7 +655,7 @@
 }
 
 .pack-tile__mark {
-  font-family: var(--font-display);
+  font-family: var(--font-wordmark);
   font-weight: 700;
   font-size: clamp(0.875rem, 1.4vw, 1.125rem);
   letter-spacing: 0.02em;
@@ -1334,7 +1381,7 @@
 
 .footer__mark span {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font-wordmark);
   font-size: 1em;
   line-height: 0.8;
   letter-spacing: normal;
@@ -2334,6 +2381,7 @@
 }
 
 .menu__mark {
+  font-family: var(--font-wordmark);
   font-size: 1.25rem;
   color: var(--void-ink);
 }
@@ -2435,9 +2483,14 @@
     margin-left: -12px;
   }
 
-  /* The wordmark and the bag are 18px tall at their type size. They are the two
-     most-tapped controls on the site and both sat well under the minimum. */
-  .nav__wordmark,
+  /* The wordmark and the bag are the two most-tapped controls on the site and
+     both sat well under the minimum target size. The wordmark keeps its grid —
+     it stacks two copies of the logo in one cell, and switching it to
+     inline-flex here would drop them into a row. */
+  .nav__wordmark {
+    min-height: 44px;
+  }
+
   .nav__bag {
     display: inline-flex;
     align-items: center;

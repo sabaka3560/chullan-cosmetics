@@ -4,6 +4,35 @@
    behind a second request chain.
    ========================================================================= */
 
+/*
+ * The packaging face, self-hosted, for the wordmark alone.
+ *
+ * `font-display: swap` on purpose. The mark is the brand's name in a specific
+ * cut, but it is not worth a blank space in the footer or the menu while 21kB
+ * arrives — Syne stands in and is replaced when the real face lands. Both
+ * weights are declared under one family so `font-weight: 700` resolves to the
+ * bold cut rather than to a synthesised smear of the regular one.
+ *
+ * Served from our own origin, which is what the Content-Security-Policy's
+ * `font-src 'self'` allows — a font on a third-party CDN would need that
+ * policy widened.
+ */
+@font-face {
+  font-family: 'Tw Cen MT Std';
+  src: url('./assets/fonts/TwCenMTStd.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tw Cen MT Std';
+  src: url('./assets/fonts/TwCenMTStdBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* ── Surfaces ────────────────────────────────────────────────────────────
      --paper must stay pure #FFF: the product cutouts are shot on white and the
@@ -65,6 +94,21 @@
   --font-display: 'Syne', sans-serif;
   --font-text: 'Manrope', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+  /*
+   * The wordmark, and only the wordmark.
+   *
+   * Tw Cen MT is the face the brand's own packaging is set in, so it belongs on
+   * the name itself and nowhere else — a headline or a paragraph in it would
+   * read as a second typeface rather than as a logo. The navigation deliberately
+   * keeps `--font-display`: it sits beside the bag and the links as part of the
+   * furniture, and swapping it there makes the bar look mismatched rather than
+   * branded.
+   *
+   * Falls back to the display face, so a blocked or failed font download leaves
+   * the mark in Syne rather than in whatever the browser picks by default.
+   */
+  --font-wordmark: 'Tw Cen MT Std', 'Syne', sans-serif;
 
   --t-display-xl: clamp(2.75rem, 1rem + 7.7778vw, 8rem);
   --t-display-l: clamp(2.125rem, 1.1667rem + 4.2593vw, 5rem);

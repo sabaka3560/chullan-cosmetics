@@ -90,6 +90,10 @@ export function Loader({ onComplete }: { onComplete: () => void }) {
             className="wordmark"
             style={{
               display: 'block',
+              /* The packaging face. Set inline like every other value on this
+                 mark — splitting one property into a stylesheet would hide it
+                 from whoever next tunes the rest. */
+              fontFamily: 'var(--font-wordmark)',
               fontSize: '2.5rem',
               letterSpacing: '0.2em',
               color: 'var(--void-ink)',
