@@ -4,7 +4,7 @@ import concealerImg from '../assets/product-concealer.jpg';
 import moisturiserImg from '../assets/product-moisturiser.jpg';
 import correctorImg from '../assets/product-colour-corrector.jpg';
 import antiShineImg from '../assets/product-anti-shine-powder.jpg';
-import sunscreenImg from '../assets/hero-sunscreen.jpg';
+import sunscreenImg from '../assets/product-sunscreen.jpg';
 import hydraPrimerImg from '../assets/product-hydra-primer.jpg';
 import settingSprayImg from '../assets/product-setting-spray.jpg';
 import { CATALOG, ROUTINE, catalogById, catalogBySku } from './catalog';
