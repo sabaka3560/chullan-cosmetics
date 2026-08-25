@@ -75,17 +75,14 @@ export const CATALOG: CatalogItem[] = [
     priceMinor: 120000,
     rating: 4.9,
     reviews: 212,
-    // The 3D bottle models a 30ml pump bottle, which is exactly this pack.
-    live: true,
     weightGrams: 140,
     dimensionsCm: { length: 5, width: 5, height: 11 },
     /*
      * Eight shades, fair neutral to deep warm, in the order the client's shade
      * chart prints them: five fair, then three deep. That order is not
-     * cosmetic — the price tier below is attached to position, so re-sorting
-     * this list silently re-prices the range.
-     */
-    /*
+     * cosmetic — the price tier is attached to position, so re-sorting this
+     * list silently re-prices the range.
+     *
      * Two tiers, two prices, and the shade decides which.
      *
      * The five lighter shades are Pro Glow at 1,80,000 paise; the three deepest
@@ -96,8 +93,7 @@ export const CATALOG: CatalogItem[] = [
      *
      * Confirmed with the client 2026-08-20. The brief names both tiers but
      * prices only one, so this mapping does not exist in the document.
-     */
-    /*
+     *
      * Names, codes and swatch values are the client's own shade chart
      * (`Chullan Foundation Shades`), not sampled from a photograph and not
      * interpolated. The hex values are what the chart publishes, so what a

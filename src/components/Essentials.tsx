@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { m, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
-import featuredImg from '../assets/essentials-moisturizer.jpg';
+import featuredImg from '../assets/feature-primer.jpg';
 
 /**
  * Every claim here is traceable to the pack copy or to the client's content
@@ -33,7 +33,7 @@ export function Essentials() {
           <m.img
             style={{ y, scale: 1.15, transformOrigin: 'center' }}
             src={featuredImg}
-            alt="Chullan revitalising moisturiser resting on coal"
+            alt="The Chullan primer suspended among the range's packaging"
             width={1024}
             height={1024}
             loading="lazy"

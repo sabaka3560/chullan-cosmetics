@@ -1,7 +1,7 @@
 import { m, useReducedMotion } from 'framer-motion';
 import { SplitText } from './Reveal';
 import { EASE } from '../motion/tokens';
-import heroImg from '../assets/hero-primer-spray.jpg';
+import heroImg from '../assets/hero-model.jpg';
 
 /**
  * Authored beats rather than a chain of nested staggers.
@@ -47,11 +47,14 @@ const SPECS = [
 ];
 
 /**
- * Photography and type only — no canvas.
+ * Photography and type only.
  *
- * The 3D lives in its own boxes further down the page, where it can be framed
- * and grounded. A canvas floating over the headline is what made the previous
- * build read as an experiment rather than a shop.
+ * The landing page carried a live WebGL bottle for several releases — in this
+ * hero's second button, in a full section below it, and as one card in the
+ * range. All of it is gone now that there are photographs of the actual
+ * products with a model holding them, which is a stronger answer to "what am I
+ * buying" than a rotatable render of a bottle ever was. The 3D code is kept
+ * under `src/three/` rather than deleted; see the note in `Showcase`.
  */
 export function Hero() {
   const reduced = useReducedMotion();
@@ -68,8 +71,8 @@ export function Hero() {
         <m.img
           src={heroImg}
           alt=""
-          width={1264}
-          height={848}
+          width={1600}
+          height={888}
           fetchPriority="high"
           decoding="sync"
           /* Opacity resolves much faster than scale, so the image is *there*
@@ -149,7 +152,11 @@ export function Hero() {
             transition={{ duration: 0.7, delay: T.cta, ease: EASE.editorial }}
           >
             <a className="btn btn--primary" href="#bestsellers">Shop the range</a>
-            <a className="btn--ghost" href="#detail">See it in 3D</a>
+            {/* Short on purpose. At 360px the primary button is 191px of a
+                320px column, so anything past about twelve characters wraps
+                this row onto two lines — which cost 72px and pushed the hero
+                copy up underneath the fixed navigation. */}
+            <a className="btn--ghost" href="#detail">The formula</a>
           </m.div>
         </div>
 

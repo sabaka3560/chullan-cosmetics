@@ -80,16 +80,17 @@ export default defineConfig({
   plugins: [react()],
   server: { proxy: apiProxy },
   preview: { proxy: apiProxy, headers: SECURITY_HEADERS },
-  build: {
-    // three + drei are only needed once a 3D slot scrolls into range, so keep
-    // them out of the entry chunk that gates first paint.
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three'],
-          drei: ['@react-three/fiber', '@react-three/drei'],
-        },
-      },
-    },
-  },
+  /*
+   * No `manualChunks` any more.
+   *
+   * It used to split three and drei out of the entry chunk, because the 3D slots
+   * only needed them once one scrolled into range. Nothing imports either now
+   * that the WebGL bottle is retired — but naming a package in `manualChunks`
+   * pulls it into the graph whether or not anything imports it, so the split was
+   * keeping 188kB of drei alive and, worse, referenced from `index.html`. Every
+   * visitor was downloading a 3D library for a feature that no longer exists.
+   *
+   * The archived code under `src/three/` still imports both, which is why they
+   * stay in package.json. Unimported, Rollup drops them entirely.
+   */
 })

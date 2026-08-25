@@ -29,8 +29,15 @@ export type Money = number;
 
 export type Currency = 'USD' | 'INR';
 
-/** The two brand lines in the catalogue. */
-export type ProductLine = 'professional' | 'men';
+/**
+ * One line, for now.
+ *
+ * `'men'` was the other member and is gone with the copy that went with
+ * it: nothing has been on that line since the range became the
+ * professional base system, and keeping it meant a mislabelled row could
+ * still put male-only branding on a product page.
+ */
+export type ProductLine = 'professional';
 
 /**
  * A buyable thing.
@@ -143,9 +150,6 @@ export type CatalogItem = {
   rating: number;
   reviews: number;
 
-  /** Rendered live in WebGL instead of shipped as a photograph. */
-  live?: boolean;
-
   /**
    * Packed shipping weight in grams, carton included — not the net fill weight
    * on the label. A 30ml bottle is 30g of product and about 140g of glass,
@@ -176,12 +180,7 @@ export type CatalogItem = {
 export type Product = CatalogItem & {
   image?: string;
 
-  /**
-   * Small flat image for cart lines. Required even for `live` products: a bag
-   * with three items must not stand up three WebGL contexts to draw three
-   * 64px thumbnails, and browsers cap concurrent contexts anyway — the cart is
-   * exactly where that limit gets hit and the hero canvas goes black.
-   */
+  /** Small flat image for cart lines. */
   thumb: string;
 
   /**

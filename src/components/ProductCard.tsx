@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { LazyBottleStage } from '../three/LazyBottleStage';
 import { revealChild } from './Reveal';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
@@ -8,13 +7,13 @@ import { priceRangeMinor, unitPriceMinor } from '../data/catalog';
 import type { Product } from '../commerce/types';
 
 /**
- * One card renders a photograph, one renders a live WebGL bottle — but they
- * share the same shell, the same 4:5 media box, the same optical frame, the
- * same hairline, the same shadow and the same caption block.
+ * Every card renders a photograph.
  *
- * That sameness is the entire point. The 3D piece has to read as another
- * product in the row, not as a demo bolted onto the page, so the only thing
- * that differs is what's inside the media box.
+ * One used to render a live WebGL bottle instead, sharing this exact shell so
+ * it read as another product in the row rather than a demo bolted onto the
+ * page. It was retired when photography of the real packs arrived: a render of
+ * an untinted bottle answers what shape the pack is, and a photograph answers
+ * what the buyer is actually getting.
  *
  * The whole card is a link to the detail page, but there is only ONE anchor in
  * the markup: the product name, stretched over the card with a pseudo-element.
@@ -132,15 +131,6 @@ export function ProductCard({
             <span className="pack-tile__mark">Chullan</span>
             <span className="pack-tile__name">{product.name}</span>
           </span>
-        ) : product.live ? (
-          <>
-            <span className="card__flag">
-              <i />
-              Live
-            </span>
-            <LazyBottleStage variant="card" className="card__stage" />
-            <span className="card__hint">Rendered in real time</span>
-          </>
         ) : (
           <img
             src={product.image ?? product.thumb}

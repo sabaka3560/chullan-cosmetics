@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { m, useAnimation } from 'framer-motion';
+import logoBone from '../assets/logo-bone.png';
 
 export function Loader({ onComplete }: { onComplete: () => void }) {
   const containerControls = useAnimation();
@@ -58,10 +59,13 @@ export function Loader({ onComplete }: { onComplete: () => void }) {
       {/* Center content */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <m.div 
-          style={{ 
+          style={{
             position: 'relative',
-            border: '2px solid rgba(243, 241, 237, 0.4)',
-            padding: '16px 32px',
+            /* No drawn border: the artwork carries its own rule box, and the CSS
+               one sat a few pixels outside it as a second frame. The wrapper
+               stays because the fill still needs something clipped to sweep
+               inside. */
+            padding: '10px 18px',
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
@@ -85,27 +89,33 @@ export function Loader({ onComplete }: { onComplete: () => void }) {
             animate={fillControls}
           />
 
-          {/* Text inside the rectangle with difference blending */}
-          <span
-            className="wordmark"
+          {/*
+            The logo, blended the same way the wordmark was.
+
+            `mixBlendMode: difference` is what makes this work, and it is why the
+            *bone* copy is used rather than the supplied black artwork. Against
+            the dark ground the light mark stays light; as the bone fill sweeps
+            underneath, difference flips it to near-black. One image reads as two
+            colours, and the letterforms invert exactly on the fill's edge —
+            which was the whole point of the original effect.
+
+            The black original would have done the opposite: invisible on the
+            dark ground, then appearing only once the fill arrived.
+          */}
+          <img
+            src={logoBone}
+            alt=""
+            width={900}
+            height={425}
             style={{
               display: 'block',
-              /* The packaging face. Set inline like every other value on this
-                 mark — splitting one property into a stylesheet would hide it
-                 from whoever next tunes the rest. */
-              fontFamily: 'var(--font-wordmark)',
-              fontSize: '2.5rem',
-              letterSpacing: '0.2em',
-              color: 'var(--void-ink)',
-              margin: 0,
-              lineHeight: 1,
+              height: 'clamp(46px, 11vw, 72px)',
+              width: 'auto',
               position: 'relative',
               zIndex: 1,
               mixBlendMode: 'difference'
             }}
-          >
-            CHULLAN
-          </span>
+          />
         </m.div>
       </div>
     </m.div>

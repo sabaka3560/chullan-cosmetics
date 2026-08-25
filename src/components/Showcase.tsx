@@ -1,9 +1,6 @@
-import { useState } from 'react';
-import { m } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
 import { Reveal } from './Reveal';
 import { VIEWPORT_TALL } from '../motion/tokens';
-import { LazyBottleStage } from '../three/LazyBottleStage';
+import showcaseImg from '../assets/showcase-model.jpg';
 
 /**
  * TODO — CONFIRM WITH THE MANUFACTURER BEFORE LAUNCH.
@@ -46,41 +43,37 @@ const SPECS = [
  * onto it.
  */
 export function Showcase() {
-  const [held, setHeld] = useState(false);
-
   return (
     <section className="section section--lg section--paper" id="detail">
       <div className="shell">
         <div className="showcase__grid">
           <Reveal viewport={VIEWPORT_TALL}>
             {/*
-              The idle float stops the moment someone takes hold of the bottle,
-              for the same reason the bottle's own idle spin does: the object
-              inside this box is draggable, and a container that keeps drifting
-              under the finger fights the gesture it is meant to invite.
+              A photograph, where a live WebGL bottle used to be.
 
-              It also means the element eventually comes to rest. An animation
-              with `repeat: Infinity` never settles, which costs compositor work
-              for as long as the page is open.
+              The 3D was genuinely good and it is not why it went: a render of an
+              untinted bottle answers "what shape is the pack", and a person
+              holding the product answers "is this for me" — which is the
+              question a shopper is actually asking on a landing page.
+
+              Everything that made the canvas work is still under `src/three/`,
+              unimported and therefore not in the bundle: `BottleStage`,
+              `LazyBottleStage`, `Bottle`, `Studio`, `bottleProfile` and
+              `labelTexture`. Kept rather than deleted because the geometry is
+              measured off the real pack and the label projection was the hard
+              part — throwing that away to save an unshipped folder would be the
+              expensive kind of tidy.
             */}
-            <m.div
-              className="showcase__stage"
-              onPointerDown={() => setHeld(true)}
-              animate={held ? { y: 0 } : { y: [0, -15, 0] }}
-              transition={
-                held
-                  ? { duration: 0.4, ease: 'easeOut' }
-                  : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
-              }
-              style={{ position: 'relative' }}
-            >
-              <div className="showcase__glow" />
-              <LazyBottleStage variant="showcase" className="card__stage" />
-              <span className="showcase__badge">
-                <RotateCcw size={12} strokeWidth={2} />
-                Drag to rotate
-              </span>
-            </m.div>
+            <figure className="showcase__stage">
+              <img
+                src={showcaseImg}
+                alt="A model holding the Chullan moisturiser carton"
+                width={1600}
+                height={890}
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
           </Reveal>
 
           <div>

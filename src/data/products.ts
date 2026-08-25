@@ -5,7 +5,7 @@ import moisturiserImg from '../assets/product-moisturiser.jpg';
 import correctorImg from '../assets/product-colour-corrector.jpg';
 import antiShineImg from '../assets/product-anti-shine-powder.jpg';
 import sunscreenImg from '../assets/product-sunscreen.jpg';
-import primerImg from '../assets/product-primer.jpg';
+import primerImg from '../assets/feature-primer.jpg';
 import settingSprayImg from '../assets/product-setting-spray.jpg';
 import { CATALOG, ROUTINE, catalogById, catalogBySku } from './catalog';
 import type { Product, Variant } from '../commerce/types';

@@ -8,7 +8,7 @@
 export const ROUTES = [
   { path: '/', name: 'home' },
   { path: '/shop', name: 'shop' },
-  { path: '/product/foundation', name: 'product (3D, multi-shade)' },
+  { path: '/product/foundation', name: 'product (multi-shade)' },
   { path: '/product/primer', name: 'product (photo, single variant)' },
   { path: '/about', name: 'about' },
   { path: '/shipping', name: 'policy: shipping' },

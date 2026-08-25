@@ -22,12 +22,24 @@ export function Footer() {
       <div className="shell">
         <div className="footer__grid">
           <div>
+            {/*
+              This read "Handsome, inside and out" and "for the inherently
+              handsome" — copy left over from when the range was pitched at men.
+              Everything around it now speaks to Indian skin tones and
+              professional artistry without gendering the reader, and a footer
+              that addresses only half the audience undercuts the page above it.
+
+              "Your tone, exactly" is the same claim the range actually makes:
+              eight shades built for Indian undertones rather than adapted from a
+              Western palette.
+            */}
             <p className="h3" style={{ color: 'var(--void-ink)' }}>
-              Handsome, inside and out.
+              Your tone, exactly.
             </p>
             <p className="footer__blurb">
-              Premium cosmetics for the inherently handsome. Crafted with pure
-              South Indian charm.
+              Professional base makeup built for Indian skin — formulated in the
+              USA, made in India, and matched to the undertones a borrowed
+              palette never had.
             </p>
           </div>
 

@@ -6,7 +6,6 @@ import { Layout } from '../components/Layout';
 import { Reveal, revealGroup } from '../components/Reveal';
 import { ProductCard } from '../components/ProductCard';
 import { DeliveryCheck } from '../components/DeliveryCheck';
-import { LazyBottleStage } from '../three/LazyBottleStage';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
 import { unitPriceMinor } from '../data/catalog';
@@ -82,32 +81,23 @@ export default function Product() {
           <div className="pdp__grid">
             <Reveal>
               <div className="pdp__media">
-                {product.live ? (
-                  <>
-                    <span className="card__flag">
-                      <i />
-                      Live
-                    </span>
-                    <LazyBottleStage variant="card" className="card__stage" />
-                    <span className="card__hint">Rendered in real time</span>
-                  </>
-                ) : (
-                  <img
-                    src={product.image ?? product.thumb}
-                    alt={product.name}
-                    width={1024}
-                    height={1024}
-                    decoding="async"
-                  />
-                )}
+                <img
+                  src={product.image ?? product.thumb}
+                  alt={product.name}
+                  width={1024}
+                  height={1024}
+                  decoding="async"
+                />
               </div>
             </Reveal>
 
             <div className="pdp__body">
               <Reveal delay={0.06}>
-                {product.line === 'men' && (
-                  <p className="pdp__line">Chullan — Make Up For Men</p>
-                )}
+                {/* A "Chullan — Make Up For Men" banner used to render here for
+                    `line === 'men'`. Nothing in the catalog has been on that
+                    line since the range became the professional base system, so
+                    it was dead code — and dead code that would have put male-only
+                    branding on a product page if a row was ever mislabelled. */}
                 <p className="eyebrow">{product.category}</p>
                 <h1 className="h2 pdp__title">{product.name}</h1>
 
