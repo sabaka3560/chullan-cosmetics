@@ -1,6 +1,6 @@
 import { Reveal } from './Reveal';
 import { VIEWPORT_TALL } from '../motion/tokens';
-import showcaseImg from '../assets/showcase-model.jpg';
+import showcaseImg from '../assets/showcase-concealer.jpg';
 
 /**
  * TODO — CONFIRM WITH THE MANUFACTURER BEFORE LAUNCH.
@@ -67,9 +67,9 @@ export function Showcase() {
             <figure className="showcase__stage">
               <img
                 src={showcaseImg}
-                alt="A model holding the Chullan moisturiser carton"
+                alt="A model holding the Chullan concealer"
                 width={1600}
-                height={890}
+                height={891}
                 loading="lazy"
                 decoding="async"
               />

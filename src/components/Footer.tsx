@@ -98,11 +98,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Oversized wordmark, bottom-cropped by the page edge. Full opacity —
-          a ghosted version reads as timid. */}
-      <div className="footer__mark" aria-hidden="true">
-        <span>Chullan</span>
-      </div>
     </footer>
   );
 }

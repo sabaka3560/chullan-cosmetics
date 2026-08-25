@@ -1,7 +1,35 @@
-import { m, useReducedMotion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { SplitText } from './Reveal';
 import { EASE } from '../motion/tokens';
-import heroImg from '../assets/hero-model.jpg';
+import slide01 from '../assets/hero-01-sunscreen.jpg';
+import slide02 from '../assets/hero-02-foundation.jpg';
+import slide03 from '../assets/hero-03-moisturiser.jpg';
+import slide04 from '../assets/hero-04-spray.jpg';
+import slide05 from '../assets/hero-05-sunscreen.jpg';
+import slide06 from '../assets/hero-06-sunscreen.jpg';
+
+/**
+ * The hero cycles rather than sitting on one photograph.
+ *
+ * `object-position` is per-slide because they are not one shape. The first is a
+ * portrait frame (0.67) and the rest are landscape (1.80), so a single
+ * position that centres one crops the other badly — on a wide desktop hero the
+ * portrait shows a narrow horizontal band, and on a phone the landscapes show a
+ * narrow vertical one. Naming the focal point per image is the only way one
+ * frame can hold both.
+ */
+const SLIDES = [
+  { src: slide01, position: '50% 32%', alt: '' },
+  { src: slide02, position: '50% 45%', alt: '' },
+  { src: slide03, position: '50% 40%', alt: '' },
+  { src: slide04, position: '50% 45%', alt: '' },
+  { src: slide05, position: '50% 42%', alt: '' },
+  { src: slide06, position: '50% 42%', alt: '' },
+];
+
+/** Long enough to read the frame, short enough that the loop is noticed. */
+const SLIDE_MS = 5200;
 
 /**
  * Authored beats rather than a chain of nested staggers.
@@ -58,38 +86,79 @@ const SPECS = [
  */
 export function Hero() {
   const reduced = useReducedMotion();
+  const [index, setIndex] = useState(0);
+
+  /*
+   * Advances forever, wrapping with a modulo — the loop has no end state, which
+   * is what "infinite" has to mean here.
+   *
+   * Paused when the tab is hidden. A setInterval in a background tab keeps
+   * firing, and every fire swaps a full-bleed photograph and starts a scale
+   * animation on it, so an unattended tab would burn compositor work for hours
+   * on frames nobody is looking at.
+   */
+  useEffect(() => {
+    if (reduced) return;
+    let timer: number | undefined;
+    const start = () => {
+      timer = window.setInterval(() => {
+        setIndex((current) => (current + 1) % SLIDES.length);
+      }, SLIDE_MS);
+    };
+    const stop = () => { if (timer !== undefined) window.clearInterval(timer); timer = undefined; };
+    const onVisibility = () => (document.hidden ? stop() : start());
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
+  }, [reduced]);
 
   return (
     <section className="hero on-dark" id="top">
       {/* The drift lives on the image, not on its frame. Animating the frame
           would animate its edges, and the frame is what the scrim and the
           section's own bounds are measured against — so the darkening would
-          drift out of register with the photograph for the six seconds it
-          settles. Scaling the image inside a clipped frame reads identically
-          and leaves every edge where it was put. */}
+          drift out of register with the photograph. Scaling the image inside a
+          clipped frame reads identically and leaves every edge where it was
+          put. */}
       <div className="hero__media">
-        <m.img
-          src={heroImg}
-          alt=""
-          width={1600}
-          height={888}
-          fetchPriority="high"
-          decoding="sync"
-          /* Opacity resolves much faster than scale, so the image is *there*
-             immediately and only its framing is still settling. That asymmetry
-             is what makes it read as a camera settling, not a page loading. */
-          initial={{ scale: reduced ? 1 : 1.15, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            /* Ken Burns. 6s rather than 15s: while the hero image is still
-               resizing it keeps producing new largest-contentful-paint
-               candidates, so a 15s drift reported an LCP of ~15.7s against a
-               2.5s "good" threshold. Six seconds reads the same and settles
-               well inside the window. */
-            scale: { duration: 6, ease: 'easeOut' },
-            opacity: { duration: 1.2, ease: 'linear' },
-          }}
-        />
+        {/*
+          `mode="popLayout"` is deliberately not used: the outgoing slide has to
+          stay in the DOM and fade *under* the incoming one, or the scrim briefly
+          sits on bare background between frames.
+
+          Only the first slide is eager. The rest are lazy and decode async —
+          six hero-sized photographs fetched at once would be about 1.3MB
+          competing with the bundle for the first paint, and slide two is not
+          needed for another five seconds.
+        */}
+        <AnimatePresence initial={false}>
+          <m.img
+            key={index}
+            src={SLIDES[index].src}
+            alt={SLIDES[index].alt}
+            width={1600}
+            height={index === 0 ? 2400 : 890}
+            fetchPriority={index === 0 ? 'high' : 'low'}
+            loading={index === 0 ? 'eager' : 'lazy'}
+            decoding={index === 0 ? 'sync' : 'async'}
+            style={{ objectPosition: SLIDES[index].position }}
+            /* Opacity resolves much faster than scale, so the image is *there*
+               immediately and only its framing is still settling. That asymmetry
+               is what makes it read as a camera settling, not a page loading. */
+            initial={{ scale: reduced ? 1 : 1.08, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              /* A slow drift across the whole time a slide is up, so the motion
+                 never stops and starts. The fade is far shorter than the hold,
+                 so the crossfade reads as a cut with a soft edge rather than as
+                 a dissolve you sit through. */
+              scale: { duration: reduced ? 0 : SLIDE_MS / 1000 + 1.5, ease: 'easeOut' },
+              opacity: { duration: 1.1, ease: 'linear' },
+            }}
+          />
+        </AnimatePresence>
         {/* Nested inside the frame rather than a sibling of it, so it is
             clipped by the same `overflow: hidden` and cannot be left behind if
             the frame is ever sized by something other than the section. */}

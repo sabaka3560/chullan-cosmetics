@@ -111,8 +111,11 @@ for (const route of ROUTES) {
             const style = getComputedStyle(el);
             if (style.visibility === 'hidden' || style.display === 'none') return false;
             if (style.opacity === '0') return false;
-            // Deliberately off-screen: the marquee and decorative bleed.
-            if (el.closest('[aria-hidden="true"], .ticker, .footer__mark')) return false;
+            // Deliberately off-screen: the marquee. `.footer__mark` was the
+            // oversized wordmark bled past the bottom edge; it is gone, so the
+            // selector goes with it rather than sitting here filtering for
+            // something that can no longer match.
+            if (el.closest('[aria-hidden="true"], .ticker')) return false;
             if (inScrollableRail(el)) return false;
             // Empty wrappers carry no content to lose.
             if (!el.textContent?.trim() && el.tagName !== 'INPUT') return false;
