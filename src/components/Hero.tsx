@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { SplitText } from './Reveal';
 import { EASE } from '../motion/tokens';
-import slide01 from '../assets/hero-01-sunscreen.jpg';
 import slide02 from '../assets/hero-02-foundation.jpg';
 import slide03 from '../assets/hero-03-moisturiser.jpg';
 import slide04 from '../assets/hero-04-spray.jpg';
@@ -12,15 +11,17 @@ import slide06 from '../assets/hero-06-sunscreen.jpg';
 /**
  * The hero cycles rather than sitting on one photograph.
  *
- * `object-position` is per-slide because they are not one shape. The first is a
- * portrait frame (0.67) and the rest are landscape (1.80), so a single
- * position that centres one crops the other badly — on a wide desktop hero the
- * portrait shows a narrow horizontal band, and on a phone the landscapes show a
- * narrow vertical one. Naming the focal point per image is the only way one
- * frame can hold both.
+ * All five are landscape (1.80), which is why they sit together cleanly. A
+ * portrait frame briefly rode in this list and had to carry its own
+ * `object-position` to survive the crop — a wide hero takes a narrow horizontal
+ * band out of a portrait, and a phone takes a narrow vertical one out of a
+ * landscape. It reads better in the Essentials column, where the frame is
+ * tall, and that is where it now lives.
+ *
+ * The positions stay per-slide even so: the subject is not in the same place
+ * in every frame, and a phone crops these to roughly a third of their width.
  */
 const SLIDES = [
-  { src: slide01, position: '50% 32%', alt: '' },
   { src: slide02, position: '50% 45%', alt: '' },
   { src: slide03, position: '50% 40%', alt: '' },
   { src: slide04, position: '50% 45%', alt: '' },
@@ -138,7 +139,7 @@ export function Hero() {
             src={SLIDES[index].src}
             alt={SLIDES[index].alt}
             width={1600}
-            height={index === 0 ? 2400 : 890}
+            height={890}
             fetchPriority={index === 0 ? 'high' : 'low'}
             loading={index === 0 ? 'eager' : 'lazy'}
             decoding={index === 0 ? 'sync' : 'async'}

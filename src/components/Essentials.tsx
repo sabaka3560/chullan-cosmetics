@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { m, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Reveal } from './Reveal';
-import featuredImg from '../assets/feature-primer.jpg';
+import featuredImg from '../assets/feature-sunscreen.jpg';
 
 /**
  * Every claim here is traceable to the pack copy or to the client's content
@@ -33,9 +33,13 @@ export function Essentials() {
           <m.img
             style={{ y, scale: 1.15, transformOrigin: 'center' }}
             src={featuredImg}
-            alt="The Chullan primer suspended among the range's packaging"
-            width={1024}
-            height={1024}
+            alt="A model holding the Chullan sunscreen"
+            /* The real intrinsic size. This said 1024x1024 while every image
+               that has actually sat here was something else — the attributes
+               exist to reserve the right box before the file arrives, and a
+               square reservation for a 2:3 portrait reserves the wrong one. */
+            width={1600}
+            height={2400}
             loading="lazy"
             decoding="async"
           />

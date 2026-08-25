@@ -1040,6 +1040,20 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /*
+   * Weighted right, because the subject is.
+   *
+   * The photograph is 1.80 and this column is close to square, so a centred
+   * crop takes the middle 55% — which lands on the model's ear and jaw and
+   * cuts her face off at the right edge. The section is headed "Made for
+   * Indian skin"; a frame that loses the face is the one thing it cannot do.
+   *
+   * 70% keeps the whole face, the jhumka and the product. It gives up the
+   * marigolds on the left, which is the right trade here — and only on wide
+   * screens: single-column keeps the image's own ratio, so a phone shows the
+   * full frame, garland included, and this value does nothing there.
+   */
+  object-position: 70% 50%;
 }
 
 .spec-list {
