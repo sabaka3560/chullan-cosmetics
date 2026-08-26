@@ -170,6 +170,11 @@ export default function Product() {
                   {!selected.inStock ? 'Sold out' : justAdded ? 'Added to bag' : 'Add to bag'}
                 </button>
 
+                {/* Packed weight removed. It is a courier's number, not a
+                    shopper's — "140g packed" says nothing about the product and
+                    quietly invites comparison against the fill weight printed
+                    on the box. It stays on the catalog row, where the delivery
+                    estimate and Shiprocket both read it. */}
                 <dl className="pdp__specs">
                   <div>
                     <dt>Size</dt>
@@ -178,10 +183,6 @@ export default function Product() {
                   <div>
                     <dt>SKU</dt>
                     <dd className="mono">{selected.sku}</dd>
-                  </div>
-                  <div>
-                    <dt>Ships</dt>
-                    <dd>{product.weightGrams}g packed</dd>
                   </div>
                 </dl>
 

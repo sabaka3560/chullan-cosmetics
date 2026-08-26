@@ -176,9 +176,16 @@
 .nav__logo {
   grid-area: 1 / 1;
   display: block;
-  /* Sized by height: the bar's height is the constraint, and the mark's own
-     ratio should decide the width. */
-  height: clamp(30px, 3.4vw, 40px);
+  /*
+   * Sized by height: the bar's height is the constraint, and the mark's own
+   * ratio decides the width.
+   *
+   * The ceiling is 48px against a 60px bar, which leaves 6px of air top and
+   * bottom. Going further starts crowding the rule under the navigation, and
+   * this lockup carries three lines of type — the sub-line stops being legible
+   * before the mark stops fitting.
+   */
+  height: clamp(36px, 4vw, 48px);
   width: auto;
   /* Matches the navigation's own `color 220ms linear 140ms`, so the mark and
      the links cross over together rather than one chasing the other. */
