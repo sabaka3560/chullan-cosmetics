@@ -4,7 +4,7 @@ import { isDuplicateOrder, totalsFor } from '../../api/_lib/fulfil';
 import { ShiprocketError } from '../../api/_lib/shiprocket';
 import { priceCart } from '../../api/_lib/pricing';
 import { parseAddress } from '../../api/_lib/address';
-import { CATALOG } from '../../src/data/catalog';
+import { CATALOG, unitPriceMinor } from '../../src/data/catalog';
 
 /**
  * The webhook exists for the case where the browser never comes back, so it
@@ -66,8 +66,14 @@ describe('pending order notes', () => {
     // Whatever a note claims, the amount comes from the catalog rows.
     const cart = priceCart(fromNotes(notes).lines);
     const expected = CATALOG.find((p) => p.id === 'foundation')!;
+    /*
+     * Through `unitPriceMinor`, not by reading `priceMinor` off the row.
+     * Re-implementing the price rule inside the test is how this assertion
+     * passed while the two disagreed — the raw field is the list price, and
+     * what a buyer is charged is that field put through the offer.
+     */
     expect(cart.lines[0].unitPriceMinor).toBe(
-      expected.variants[0].priceMinor ?? expected.priceMinor,
+      unitPriceMinor(expected, expected.variants[0]),
     );
   });
 });

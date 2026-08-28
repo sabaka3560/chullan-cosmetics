@@ -5,6 +5,7 @@ import { ShiprocketError } from '../_lib/shiprocket.js';
 import { InvalidCartError, priceCart } from '../_lib/pricing.js';
 import { InvalidAddressError } from '../_lib/address.js';
 import { isRazorpayConfigured, razorpayClient } from '../_lib/razorpay.js';
+import { TimeoutError, withTimeout } from '../_lib/timeout.js';
 import { buildOrderPayload, paidAmountMatches, placeOrder, totalsFor } from '../_lib/fulfil.js';
 import { IncompleteNotesError, fromNotes } from '../_lib/pending.js';
 
@@ -126,9 +127,11 @@ export default async function handler(request: VercelRequest, response: VercelRe
   try {
     paymentId = paymentIdFrom(request.body);
   } catch {
+    console.warn('[webhook] ignored: body would not parse');
     return response.status(STOP).json({ ok: true, ignored: 'unparseable body' });
   }
   if (!paymentId) {
+    console.warn('[webhook] ignored: no payment id in payload');
     return response.status(STOP).json({ ok: true, ignored: 'no payment id' });
   }
 
@@ -138,15 +141,28 @@ export default async function handler(request: VercelRequest, response: VercelRe
      * so it answers "is this a real captured payment on our account" rather
      * than "did something claim it was".
      */
-    const payment = (await razorpayClient().payments.fetch(paymentId)) as {
+    const payment = (await withTimeout(
+      'Razorpay payments.fetch',
+      razorpayClient().payments.fetch(paymentId),
+    )) as {
       status?: string;
       order_id?: string;
       amount?: number | string;
     };
 
     if (payment.status !== 'captured') {
-      // Authorised-but-not-captured, failed, refunded. Nothing to ship, and
-      // nothing that will change by retrying.
+      /*
+       * Authorised-but-not-captured, failed, refunded. Nothing to ship, and
+       * nothing that will change by retrying.
+       *
+       * Logged rather than returned silently. This branch used to answer 200
+       * and write nothing at all, which meant the one signal we had that a
+       * buyer's payment had not gone through looked identical to no webhook
+       * arriving — the endpoint's own logs said only that it had run. Naming
+       * the status here is the difference between "a payment failed at 16:40"
+       * and an afternoon of guessing.
+       */
+      console.warn('[webhook] ignored:', paymentId, 'status', payment.status);
       return response.status(STOP).json({ ok: true, ignored: `status ${payment.status}` });
     }
     if (!payment.order_id) {
@@ -154,7 +170,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       return response.status(STOP).json({ ok: true, ignored: 'no order on payment' });
     }
 
-    const order = (await razorpayClient().orders.fetch(payment.order_id)) as {
+    const order = (await withTimeout(
+      'Razorpay orders.fetch',
+      razorpayClient().orders.fetch(payment.order_id),
+    )) as {
       notes?: unknown;
     };
 
@@ -220,6 +239,15 @@ export default async function handler(request: VercelRequest, response: VercelRe
       .status(STOP)
       .json({ ok: true, reference: pending.reference, rescued: true });
   } catch (cause) {
+    if (cause instanceof TimeoutError) {
+      /*
+       * Razorpay itself was slow or unreachable. Retryable, and it must be:
+       * this is the rescue path, so giving up here is how a paid order ends up
+       * with nothing shipped behind it.
+       */
+      console.error('[webhook] TIMEOUT', paymentId, cause.message);
+      return response.status(RETRY).json({ error: 'upstream_timeout' });
+    }
     if (cause instanceof IncompleteNotesError) {
       // Nothing to rebuild from, and retrying cannot invent it.
       console.error('[webhook] cannot fulfil', paymentId, cause.message);

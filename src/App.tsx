@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import OrderConfirmed from './pages/OrderConfirmed';
 import Checkout from './pages/Checkout';
 import Placeholder from './pages/Placeholder';
+import Ingredients from './pages/Ingredients';
 import { CartProvider } from './commerce/CartProvider';
 import { CartDrawer } from './components/CartDrawer';
 import { ScrollToTop } from './components/Layout';
@@ -46,7 +47,7 @@ function AnimatedRoutes() {
         <Route path="/order-confirmed" element={<OrderConfirmed />} />
         <Route path="/gift-cards" element={<Placeholder title="Gift Cards" />} />
         <Route path="/shade-finder" element={<Placeholder title="Shade Finder" />} />
-        <Route path="/ingredients" element={<Placeholder title="Ingredients" />} />
+        <Route path="/ingredients" element={<Ingredients />} />
         <Route path="/sustainability" element={<Placeholder title="Sustainability" />} />
         <Route path="/stockists" element={<Placeholder title="Stockists" />} />
         <Route path="/reviews" element={<Placeholder title="All Reviews" />} />

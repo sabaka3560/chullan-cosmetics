@@ -7,11 +7,12 @@ import slide03 from '../assets/hero-03-moisturiser.jpg';
 import slide04 from '../assets/hero-04-spray.jpg';
 import slide05 from '../assets/hero-05-sunscreen.jpg';
 import slide06 from '../assets/hero-06-sunscreen.jpg';
+import slide07 from '../assets/hero-07-powder.jpg';
 
 /**
  * The hero cycles rather than sitting on one photograph.
  *
- * All five are landscape (1.80), which is why they sit together cleanly. A
+ * All six are landscape (1.80), which is why they sit together cleanly. A
  * portrait frame briefly rode in this list and had to carry its own
  * `object-position` to survive the crop — a wide hero takes a narrow horizontal
  * band out of a portrait, and a phone takes a narrow vertical one out of a
@@ -27,6 +28,11 @@ const SLIDES = [
   { src: slide04, position: '50% 45%', alt: '' },
   { src: slide05, position: '50% 42%', alt: '' },
   { src: slide06, position: '50% 42%', alt: '' },
+  /* Pushed right of centre, unlike the rest. The subject sits at about 56% of
+     the frame rather than on the midline, and a phone crops these to roughly a
+     third of their width — centred, that crop takes the floral background and
+     leaves the face and the jar outside it. */
+  { src: slide07, position: '56% 40%', alt: '' },
 ];
 
 /** Long enough to read the frame, short enough that the loop is noticed. */

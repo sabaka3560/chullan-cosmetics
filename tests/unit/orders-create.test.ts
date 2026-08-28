@@ -1,5 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createHmac } from 'node:crypto';
+import { catalogBySku, unitPriceMinor } from '../../src/data/catalog';
+
+/**
+ * What one unit of a SKU costs today, offer included.
+ *
+ * These fixtures used to carry the figure written out beside the SKU. That is
+ * the same mistake the code under test exists to prevent — a price transcribed
+ * in a second place drifts from the catalog, and here it drifts silently into
+ * an amount-mismatch failure that looks like the gate working when it is only
+ * the fixture being wrong.
+ */
+const priceOf = (sku: string) => {
+  const entry = catalogBySku(sku)!;
+  return unitPriceMinor(entry.product, entry.variant);
+};
 
 /**
  * What `/api/orders/create` is allowed to ship.
@@ -24,8 +39,12 @@ const KEY_SECRET = 'test-key-secret';
 const ORDER_ID = 'order_TESTORDER1';
 const PAYMENT_ID = 'pay_TESTPAYMENT1';
 
-const CHEAP = { sku: 'CHU-ASP-10-BAN', qty: 1, minor: 79500 };       // Anti-Shine, ₹795
-const PRICEY = { sku: 'CHU-FDN-30-01', qty: 10, minor: 1800000 };    // 10x Pro Glow, ₹18,000
+const CHEAP = { sku: 'CHU-ASP-10-BAN', qty: 1, minor: priceOf('CHU-ASP-10-BAN') };
+const PRICEY = {
+  sku: 'CHU-FDN-30-01',
+  qty: 10,
+  minor: priceOf('CHU-FDN-30-01') * 10,
+};
 
 /** The bag the buyer actually paid for, as stored when the order was created. */
 const PAID_NOTES = {

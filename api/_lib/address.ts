@@ -56,9 +56,32 @@ const LIMITS = {
   state: 100,
 } as const;
 
+/**
+ * Angle brackets, which no name or Indian postal address contains.
+ *
+ * These fields are copied verbatim into somebody else's admin panel — the
+ * Shiprocket order list — and we control neither how that panel escapes what we
+ * send nor what it does with a `<script>` in a customer name. Our own pages are
+ * safe by construction, because React escapes on render, but "safe where we
+ * render it" is not the same as "safe to forward".
+ *
+ * Razorpay turned out to reject `<script>` in order notes itself, which is why
+ * this went unnoticed: the prepaid path had an accidental second filter. The
+ * COD path has none — it goes straight from here to Shiprocket without passing
+ * through Razorpay at all — so the guard belongs at our own door rather than
+ * borrowed from a payment provider that never promised it.
+ *
+ * Refused outright rather than stripped. Silently editing somebody's name is
+ * its own small failure, and a buyer told which field to fix can fix it.
+ */
+const MARKUP = /[<>]/;
+
 function bounded(field: keyof typeof LIMITS, value: string): string {
   if (value.length > LIMITS[field]) {
     throw new InvalidAddressError(field, `That ${field} is too long`);
+  }
+  if (MARKUP.test(value)) {
+    throw new InvalidAddressError(field, `That ${field} cannot contain < or >`);
   }
   return value;
 }

@@ -9,6 +9,7 @@ import type { Address } from '../_lib/address.js';
 import { IncompleteNotesError, fromNotes } from '../_lib/pending.js';
 import { isRazorpayConfigured, isTestMode, razorpayClient, razorpayConfig } from '../_lib/razorpay.js';
 import { buildOrderPayload, paidAmountMatches, placeOrder, totalsFor } from '../_lib/fulfil.js';
+import { TimeoutError, withTimeout } from '../_lib/timeout.js';
 import type { PaymentMethod } from '../_lib/fulfil.js';
 
 /**
@@ -127,7 +128,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
        * order the buyer has provably paid for — and it is the authority for
        * what to ship, not the request body.
        */
-      const rzpOrder = (await razorpayClient().orders.fetch(orderId)) as {
+      const rzpOrder = (await withTimeout(
+        'Razorpay orders.fetch',
+        razorpayClient().orders.fetch(orderId),
+      )) as {
         notes?: unknown;
         amount?: number | string;
       };
@@ -197,13 +201,33 @@ export default async function handler(request: VercelRequest, response: VercelRe
     if (cause instanceof InvalidCartError) {
       return response.status(400).json({ error: 'invalid_cart', message: cause.message });
     }
+    /*
+     * Everything below may be running after the money has moved, so each log
+     * carries the two ids that identify the payment in Razorpay. Without them
+     * a failure here is a line saying something went wrong for somebody, and
+     * reconciling it means reading the whole day's payments by hand.
+     *
+     * `reference` is scoped inside the try and is not reachable here; these are.
+     */
+    const ids = request.body as {
+      razorpay_payment_id?: unknown;
+      razorpay_order_id?: unknown;
+    };
+    const paid = `payment ${String(ids?.razorpay_payment_id ?? '-')} order ${String(ids?.razorpay_order_id ?? '-')}`;
+
+    if (cause instanceof TimeoutError) {
+      // Upstream went quiet rather than refused. The webhook will retry this
+      // order for hours, so the buyer is not stranded — but say so plainly.
+      console.error('[orders/create] TIMEOUT', cause.message, paid);
+      return response.status(504).json({ error: 'upstream_timeout' });
+    }
     if (cause instanceof ShiprocketError) {
       // Deliberately loud: a payment may already have been taken, so a failure
       // here is money in without goods out and needs a human.
-      console.error('[orders/create] SHIPROCKET FAILED', cause.status, cause.message);
+      console.error('[orders/create] SHIPROCKET FAILED', cause.status, cause.message, paid);
       return response.status(502).json({ error: 'order_creation_failed' });
     }
-    console.error('[orders/create]', cause);
+    console.error('[orders/create]', cause, paid);
     return response.status(500).json({ error: 'server_error' });
   }
 }

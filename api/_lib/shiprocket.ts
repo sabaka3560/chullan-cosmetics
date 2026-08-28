@@ -1,4 +1,5 @@
 import { shiprocket } from './env.js';
+import { UPSTREAM_TIMEOUT_MS } from './timeout.js';
 
 /**
  * Shiprocket auth.
@@ -53,14 +54,45 @@ export class ShiprocketAuthError extends ShiprocketError {
   }
 }
 
+/**
+ * Turns transport failures into `ShiprocketError`.
+ *
+ * A timeout and a DNS failure arrive as `AbortError` and `TypeError`, which
+ * every caller's `instanceof ShiprocketError` branch misses — so they fell
+ * through to the generic 500 handler and, in the webhook, to a path that does
+ * not ask Razorpay to retry. They are upstream trouble like any 5xx and want
+ * the same treatment, so they are relabelled here at the boundary.
+ */
+async function withNetworkErrorsAsShiprocketErrors<T>(
+  what: string,
+  call: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await call();
+  } catch (cause) {
+    if (cause instanceof ShiprocketError) throw cause;
+    const timedOut = cause instanceof Error && cause.name === 'TimeoutError';
+    throw new ShiprocketError(
+      timedOut
+        ? `Shiprocket ${what} timed out`
+        : `Shiprocket ${what} unreachable: ${cause instanceof Error ? cause.message : 'unknown'}`,
+    );
+  }
+}
+
 async function login(): Promise<string> {
   const { email, password, baseUrl } = shiprocket();
 
-  const response = await fetch(`${baseUrl}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
+  const response = await withNetworkErrorsAsShiprocketErrors('auth/login', () =>
+    fetch(`${baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      // Without a deadline a hung login holds the whole function until the
+      // platform kills it, and a killed function logs no reason at all.
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    }),
+  );
 
   if (!response.ok) {
     // Deliberately does not echo the response body: a failed auth response can
@@ -115,35 +147,101 @@ export async function getToken(): Promise<string> {
   return inFlight;
 }
 
+/** Attempts made when Shiprocket answers 5xx or the transport fails. */
+const TRANSIENT_ATTEMPTS = 3;
+/** Backoff between those attempts. Short: a buyer is waiting on this. */
+const BACKOFF_MS = [0, 400, 1200];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * A thin authenticated fetch. Retries once on 401 with a fresh token, because
- * the only way to discover a token was revoked early is to be told.
+ * Reads whatever the upstream said about a failure.
+ *
+ * Safe on these endpoints in a way it is not on `/auth/login`: no credentials
+ * are submitted, so nothing sensitive can be echoed back. Worth having, because
+ * `Shiprocket /orders/create/adhoc failed 422` alone never says *which* field
+ * it disliked, and that is the whole question when an order will not go.
+ */
+async function failureDetail(response: Response): Promise<string> {
+  return response
+    .text()
+    .then((body) => body.slice(0, 300))
+    .catch(() => '');
+}
+
+/**
+ * A thin authenticated fetch.
+ *
+ * Three failure modes, three different responses:
+ *
+ *   401  the token was revoked early. Re-auth once and try again — being told
+ *        is the only way to discover it.
+ *   5xx  Shiprocket is having a bad day. Retry with backoff.
+ *   4xx  we sent something wrong. Retrying cannot fix it, so it fails at once
+ *        carrying the upstream's own explanation.
+ *
+ * Retrying a create is safe because Shiprocket enforces uniqueness on
+ * `order_id`, so a second arrival is refused rather than duplicated — the same
+ * property the webhook already depends on.
  */
 export async function shiprocketFetch(
   path: string,
   init: RequestInit = {},
-  retryOnUnauthorised = true,
+  { timeoutMs = UPSTREAM_TIMEOUT_MS, retryOnUnauthorised = true } = {},
 ): Promise<unknown> {
   const { baseUrl } = shiprocket();
-  const token = await getToken();
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...init.headers,
-    },
-  });
+  let lastError: ShiprocketError | null = null;
 
-  if (response.status === 401 && retryOnUnauthorised) {
-    cache = null;
-    return shiprocketFetch(path, init, false);
+  for (let attempt = 0; attempt < TRANSIENT_ATTEMPTS; attempt += 1) {
+    if (BACKOFF_MS[attempt]) await sleep(BACKOFF_MS[attempt]);
+
+    const token = await getToken();
+
+    let response: Response;
+    try {
+      response = await withNetworkErrorsAsShiprocketErrors(path, () =>
+        fetch(`${baseUrl}${path}`, {
+          ...init,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...init.headers,
+          },
+          signal: AbortSignal.timeout(timeoutMs),
+        }),
+      );
+    } catch (cause) {
+      // Transport-level: worth another go, but remember it in case this was
+      // the last one.
+      lastError = cause as ShiprocketError;
+      continue;
+    }
+
+    if (response.status === 401 && retryOnUnauthorised) {
+      cache = null;
+      return shiprocketFetch(path, init, { timeoutMs, retryOnUnauthorised: false });
+    }
+
+    if (response.status >= 500) {
+      lastError = new ShiprocketError(
+        `Shiprocket ${path} failed: ${await failureDetail(response)}`,
+        response.status,
+      );
+      console.warn('[shiprocket] transient', response.status, path, `attempt ${attempt + 1}`);
+      continue;
+    }
+
+    if (!response.ok) {
+      throw new ShiprocketError(
+        `Shiprocket ${path} failed: ${await failureDetail(response)}`,
+        response.status,
+      );
+    }
+
+    return response.json();
   }
 
-  if (!response.ok) {
-    throw new ShiprocketError(`Shiprocket ${path} failed`, response.status);
-  }
-
-  return response.json();
+  console.error('[shiprocket] exhausted retries', path, lastError?.message);
+  throw lastError ?? new ShiprocketError(`Shiprocket ${path} failed`);
 }

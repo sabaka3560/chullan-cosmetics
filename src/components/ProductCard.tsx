@@ -3,7 +3,7 @@ import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { revealChild } from './Reveal';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
-import { priceRangeMinor, unitPriceMinor } from '../data/catalog';
+import { OFFER, listPriceRangeMinor, priceRangeMinor, unitPriceMinor } from '../data/catalog';
 import type { Product } from '../commerce/types';
 
 /**
@@ -80,6 +80,21 @@ export function ProductCard({
     range.min === range.max
       ? formatMoney(range.min)
       : `From ${formatMoney(range.min)}`;
+
+  /*
+   * The struck-through figure is the real list price, derived the same way, so
+   * it cannot drift from what the product actually sold at. `wasDiscounted`
+   * compares the two rather than reading `OFFER.active` alone — a product whose
+   * list and offer price happen to match should not display a strike through an
+   * identical number.
+   */
+  const listRange = listPriceRangeMinor(product);
+  const listCaption =
+    listRange.min === listRange.max
+      ? formatMoney(listRange.min)
+      : `From ${formatMoney(listRange.min)}`;
+  const wasDiscounted = OFFER.active && listRange.min > range.min;
+  const percentOff = Math.round(OFFER.rate * 100);
 
   // 3D Parallax hover logic
   const x = useMotionValue(0);
@@ -178,7 +193,20 @@ export function ProductCard({
             quieter, and on every card rather than three. `Rating` and the
             catalog fields are both still here for when the numbers are real. */}
         <div className="card__meta">
-          <span className="card__price">{caption}</span>
+          <span className="card__price">
+            {caption}
+            {wasDiscounted ? (
+              /* `<s>` rather than styling alone: struck text that is only
+                 struck in CSS reads to a screen reader as a second, cheaper
+                 price with no indication it is void. The hidden "Was" makes the
+                 pair unambiguous read aloud. */
+              <s className="card__price-was">
+                <span className="sr-only">Was </span>
+                {listCaption}
+              </s>
+            ) : null}
+          </span>
+          {wasDiscounted ? <span className="card__off">{percentOff}% off</span> : null}
         </div>
         <span className="card__size">{product.size}</span>
 

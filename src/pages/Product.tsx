@@ -8,7 +8,7 @@ import { ProductCard } from '../components/ProductCard';
 import { DeliveryCheck } from '../components/DeliveryCheck';
 import { useCart } from '../commerce/CartProvider';
 import { formatMoney } from '../commerce/money';
-import { unitPriceMinor } from '../data/catalog';
+import { OFFER, listPriceMinor, savingMinor, unitPriceMinor } from '../data/catalog';
 import { VIEWPORT } from '../motion/tokens';
 import { productById, products } from '../data/products';
 import { SITE_ORIGIN, useSeo } from '../seo/useSeo';
@@ -107,7 +107,22 @@ export default function Product() {
                       and no reason to quote anything but what will be charged. */}
                   <span className="pdp__price">
                     {selected ? formatMoney(unitPriceMinor(product, selected)) : null}
+                    {selected && savingMinor(product, selected) > 0 ? (
+                      <s className="pdp__price-was">
+                        <span className="sr-only">Was </span>
+                        {formatMoney(listPriceMinor(product, selected))}
+                      </s>
+                    ) : null}
                   </span>
+                  {selected && savingMinor(product, selected) > 0 ? (
+                    /* States the rupees saved, not just the percentage. On a
+                       page where one shade is selected there is a real figure
+                       to give, and "save ₹360" is a stronger claim than "20%
+                       off" precisely because it is concrete. */
+                    <span className="pdp__off">
+                      {OFFER.label} · save {formatMoney(savingMinor(product, selected))}
+                    </span>
+                  ) : null}
                   {/* Star rating removed with the testimonials — the review
                       count behind it was invented. See `ProductCard`. */}
                 </div>

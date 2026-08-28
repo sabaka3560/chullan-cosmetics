@@ -86,13 +86,29 @@ export function Footer() {
           <nav>
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>
-            {/* External, so it stays an anchor — and rel guards the opener. */}
+            {/* External, so these stay anchors — and rel guards the opener.
+
+                Both are canonical profile URLs rather than the share links they
+                arrived as. Instagram appends `?igsi=` and Facebook hands out a
+                `/share/<id>/` redirect; both are per-share tracking tokens, and
+                the Facebook one is an opaque id that resolves to
+                `/chullancosmetics` today and is Facebook's to retire whenever it
+                likes. Baking either into every page of the site would put a
+                tracking parameter on a permanent link and leave the destination
+                outside our control. */}
             <a
-              href="https://instagram.com/"
+              href="https://www.instagram.com/chullanmakeup_cosmetics"
               target="_blank"
               rel="noreferrer noopener"
             >
               Instagram
+            </a>
+            <a
+              href="https://www.facebook.com/chullancosmetics"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Facebook
             </a>
           </nav>
         </div>

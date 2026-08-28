@@ -63,6 +63,28 @@ export const legalEntity = {
    */
   email: 'chullantech@gmail.com',
   grievanceEmail: 'chullantech@gmail.com',
+
+  /*
+   * Where a returned parcel physically goes, which is not the registered
+   * address above and not the same legal entity.
+   *
+   * Kept as its own field rather than folded into `address` on purpose. The
+   * registered address is a statutory disclosure about who is selling; this is
+   * an operational instruction about where to post a box. Buyers who conflate
+   * the two send returns to Bengaluru and the parcel is lost to everybody.
+   *
+   * It must also match the pickup address configured in Shiprocket, since that
+   * is where an RTO parcel is delivered regardless of what this page says.
+   */
+  returnsAddressee: 'Vedic Trade Link',
+  returnsAddress: 'Pada, South Karunagappally, Kollam, Kerala 690518, India',
+
+  /*
+   * Customer care, as distinct from the Grievance Officer's line above. The
+   * first answers "where is my parcel"; the second is the formal escalation the
+   * e-commerce rules require, and merging them buries the escalation route.
+   */
+  customerCarePhones: ['+91 94469 99006', '+91 79941 31777'],
 };
 
 export const policies: Policy[] = [
@@ -128,6 +150,20 @@ export const policies: Policy[] = [
         heading: 'Change of mind',
         body: [
           'Return shipping for a change-of-mind return is [borne by the customer / free], and is deducted from the refund where applicable.',
+        ],
+      },
+      {
+        /*
+         * Deliberately not written as a bare address. A buyer who posts a
+         * parcel without telling anyone produces an unlabelled box at a
+         * warehouse with no order behind it, which is the one return nobody can
+         * refund. Contacting first is the instruction; the address is the
+         * detail that follows it.
+         */
+        heading: 'Where to send it',
+        body: [
+          `Contact us before posting anything back, so the return can be matched to your order. Once confirmed, returns go to ${legalEntity.returnsAddressee}, ${legalEntity.returnsAddress}.`,
+          `Write your order reference on the outside of the parcel. Returns sent without one, or sent to the registered office rather than the address above, cannot be traced back to a buyer.`,
         ],
       },
       {

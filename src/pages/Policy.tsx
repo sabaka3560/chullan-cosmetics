@@ -54,16 +54,40 @@ export default function Policy({ slug }: { slug: string }) {
                   <dt>Registered address</dt>
                   <dd>{legalEntity.address}</dd>
                 </div>
+                {/* Returns go to a different address, and to a different
+                    entity, than the registered one above. Stated here rather
+                    than only in the Returns policy text, because this block is
+                    the part buyers actually copy from. */}
+                <div>
+                  <dt>Returns address</dt>
+                  <dd>
+                    {legalEntity.returnsAddressee}, {legalEntity.returnsAddress}
+                  </dd>
+                </div>
+                {/* Each contact detail is its own `.atom`, so a line break is
+                    taken at a separator rather than through the middle of a
+                    phone number — "+91 79941" on one line and "31777" on the
+                    next is not a number anybody can ring. */}
                 <div>
                   <dt>Customer care</dt>
                   <dd>
-                    {legalEntity.email} · {legalEntity.phone}
+                    <span className="atom">{legalEntity.email}</span>
+                    {legalEntity.customerCarePhones.map((phone) => (
+                      <span key={phone}>
+                        {' · '}
+                        <span className="atom">{phone}</span>
+                      </span>
+                    ))}
                   </dd>
                 </div>
                 <div>
                   <dt>Grievance Officer</dt>
                   <dd>
-                    {legalEntity.grievanceOfficer} · {legalEntity.grievanceEmail}
+                    <span className="atom">{legalEntity.grievanceOfficer}</span>
+                    {' · '}
+                    <span className="atom">{legalEntity.grievanceEmail}</span>
+                    {' · '}
+                    <span className="atom">{legalEntity.phone}</span>
                   </dd>
                 </div>
                 <div>

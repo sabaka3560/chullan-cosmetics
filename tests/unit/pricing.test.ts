@@ -85,15 +85,26 @@ describe('priceCart', () => {
     const proGlow = foundation.variants.find((v) => v.tier === 'Pro Glow')!;
     const base = foundation.variants.find((v) => v.tier === 'Professional Base')!;
 
-    expect(priceCart([{ sku: proGlow.sku, qty: 1 }]).subtotalMinor).toBe(180000);
-    expect(priceCart([{ sku: base.sku, qty: 1 }]).subtotalMinor).toBe(120000);
+    /*
+     * Derived rather than transcribed, so a launch offer cannot make this fail
+     * for a reason that has nothing to do with tiers. The claim under test is
+     * that the two tiers price differently and do not collapse — not what
+     * either happens to cost this month. `catalog-brief.test.ts` is where the
+     * absolute figures are pinned.
+     */
+    const proGlowPrice = unitPriceMinor(foundation, proGlow);
+    const basePrice = unitPriceMinor(foundation, base);
+    expect(proGlowPrice).toBeGreaterThan(basePrice);
+
+    expect(priceCart([{ sku: proGlow.sku, qty: 1 }]).subtotalMinor).toBe(proGlowPrice);
+    expect(priceCart([{ sku: base.sku, qty: 1 }]).subtotalMinor).toBe(basePrice);
 
     // Both shades of the same product in one bag must not collapse to one price.
     const mixed = priceCart([
       { sku: proGlow.sku, qty: 1 },
       { sku: base.sku, qty: 1 },
     ]);
-    expect(mixed.subtotalMinor).toBe(300000);
+    expect(mixed.subtotalMinor).toBe(proGlowPrice + basePrice);
   });
 
   it('sums weight for the courier band', () => {

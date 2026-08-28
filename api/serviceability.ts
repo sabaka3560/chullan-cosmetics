@@ -3,6 +3,7 @@ import { isConfigured, shiprocket } from './_lib/env.js';
 import { ShiprocketAuthError, ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
 import { InvalidCartError, parseLines, priceCart } from './_lib/pricing.js';
 import { isMockMode, mockServiceability } from './_lib/mock.js';
+import { LOOKUP_LIMIT, rateLimited } from './_lib/rate-limit.js';
 
 /**
  * "Does it reach me, and when" — asked in the bag, before the buyer commits.
@@ -38,6 +39,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.setHeader('Allow', 'POST');
     return response.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Cheap for us, metered by Shiprocket — an unattended loop here exhausts the
+  // account's rate limit and the casualty is a real buyer's delivery check.
+  if (rateLimited(request, response, LOOKUP_LIMIT)) return;
 
   // Checked before the credential guard, so the whole flow is walkable with no
   // Shiprocket account at all.

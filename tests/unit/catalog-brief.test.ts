@@ -11,20 +11,41 @@
  * what to edit.
  */
 import { describe, it, expect } from 'vitest';
-import { CATALOG, priceRangeMinor, unitPriceMinor } from '../../src/data/catalog';
+import {
+  CATALOG,
+  OFFER,
+  listPriceMinor,
+  listPriceRangeMinor,
+  priceRangeMinor,
+  unitPriceMinor,
+} from '../../src/data/catalog';
 import { formatMoney } from '../../src/commerce/money';
 
-/** Transcribed from Chullan Website Content, Parts 1 and 2 — both pages agree. */
-const BRIEF: Record<string, { price: string; minor: number; from?: boolean; shades: number }> = {
-  foundation:          { price: 'FROM ₹1,200', minor: 120000, from: true, shades: 8 },
-  concealer:           { price: '₹1,200', minor: 120000, shades: 3 },
-  moisturiser:         { price: '₹1,100', minor: 110000, shades: 1 },
-  primer:              { price: '₹1,500', minor: 150000, shades: 1 },
-  'anti-shine-powder': { price: '₹795',   minor: 79500,  shades: 4 },
-  'setting-spray':     { price: '₹1,200', minor: 120000, shades: 1 },
-  'colour-corrector':  { price: '₹1,950', minor: 195000, shades: 1 },
-  sunscreen:           { price: '₹1,200', minor: 120000, shades: 1 },
+/**
+ * Transcribed from Chullan Website Content, Parts 1 and 2 — both pages agree.
+ *
+ * `minor` is the LIST price, which is what the brief signed off and what the
+ * page strikes through. `nowMinor` is what a card is actually charged while the
+ * launch offer runs. Both are pinned: the discount reaches the payment request
+ * through `unitPriceMinor`, so an arithmetic slip there is not a cosmetic bug,
+ * it is every buyer paying the wrong amount.
+ */
+const BRIEF: Record<
+  string,
+  { price: string; minor: number; now: string; nowMinor: number; from?: boolean; shades: number }
+> = {
+  foundation:          { price: 'FROM ₹1,200', minor: 120000, now: 'FROM ₹960', nowMinor: 96000, from: true, shades: 8 },
+  concealer:           { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 3 },
+  moisturiser:         { price: '₹1,100', minor: 110000, now: '₹880',   nowMinor: 88000,  shades: 1 },
+  primer:              { price: '₹1,500', minor: 150000, now: '₹1,200', nowMinor: 120000, shades: 1 },
+  'anti-shine-powder': { price: '₹795',   minor: 79500,  now: '₹636',   nowMinor: 63600,  shades: 4 },
+  'setting-spray':     { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 1 },
+  'colour-corrector':  { price: '₹1,950', minor: 195000, now: '₹1,560', nowMinor: 156000, shades: 1 },
+  sunscreen:           { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 1 },
 };
+
+const shown = (range: { min: number; max: number }, from?: boolean) =>
+  range.min === range.max || !from ? formatMoney(range.min) : `FROM ${formatMoney(range.min)}`;
 
 describe('catalog matches the content brief', () => {
   it('covers exactly the eight briefed products', () => {
@@ -32,19 +53,42 @@ describe('catalog matches the content brief', () => {
   });
 
   for (const [id, want] of Object.entries(BRIEF)) {
-    it(`${id}: ${want.price}, ${want.shades} shade(s)`, () => {
+    it(`${id}: list ${want.price}, ${want.shades} shade(s)`, () => {
       const item = CATALOG.find((p) => p.id === id)!;
       expect(item, `${id} missing`).toBeDefined();
-      const range = priceRangeMinor(item);
-      const shown =
-        range.min === range.max
-          ? formatMoney(range.min)
-          : `FROM ${formatMoney(range.min)}`;
-      expect(shown).toBe(want.price);
+      const range = listPriceRangeMinor(item);
+      expect(shown(range, want.from)).toBe(want.price);
       expect(range.min).toBe(want.minor);
       expect(item.variants.length).toBe(want.shades);
     });
+
+    it(`${id}: charges ${want.now} under the launch offer`, () => {
+      const item = CATALOG.find((p) => p.id === id)!;
+      const range = priceRangeMinor(item);
+      expect(shown(range, want.from)).toBe(want.now);
+      expect(range.min).toBe(want.nowMinor);
+    });
   }
+
+  it('discounts every product by exactly the offer rate', () => {
+    expect(OFFER.active).toBe(true);
+    for (const product of CATALOG) {
+      for (const variant of product.variants) {
+        const list = listPriceMinor(product, variant);
+        expect(unitPriceMinor(product, variant)).toBe(Math.round((list * (1 - OFFER.rate)) / 100) * 100);
+      }
+    }
+  });
+
+  it('never prices a shade above its list price', () => {
+    for (const product of CATALOG) {
+      for (const variant of product.variants) {
+        expect(unitPriceMinor(product, variant)).toBeLessThanOrEqual(
+          listPriceMinor(product, variant),
+        );
+      }
+    }
+  });
 });
 
 /**
@@ -66,24 +110,25 @@ describe('foundation shade tiers', () => {
    * The chart's split is the price split: C-coded fair shades are Pro Glow,
    * FC-coded deep shades are Professional Base.
    */
-  const expected: Record<string, { code: string; tier: string; price: number }> = {
-    Bisque: { code: 'C1W1', tier: 'Pro Glow', price: 180000 },
-    Cashew: { code: 'C2W1', tier: 'Pro Glow', price: 180000 },
-    Almond: { code: 'C2W2', tier: 'Pro Glow', price: 180000 },
-    Fawn: { code: 'C3W1', tier: 'Pro Glow', price: 180000 },
-    Hazel: { code: 'C3W2', tier: 'Pro Glow', price: 180000 },
-    Amber: { code: 'FC01A', tier: 'Professional Base', price: 120000 },
-    Espresso: { code: 'FC01E', tier: 'Professional Base', price: 120000 },
-    Cocoa: { code: 'FC01C', tier: 'Professional Base', price: 120000 },
+  const expected: Record<string, { code: string; tier: string; price: number; now: number }> = {
+    Bisque: { code: 'C1W1', tier: 'Pro Glow', price: 180000, now: 144000 },
+    Cashew: { code: 'C2W1', tier: 'Pro Glow', price: 180000, now: 144000 },
+    Almond: { code: 'C2W2', tier: 'Pro Glow', price: 180000, now: 144000 },
+    Fawn: { code: 'C3W1', tier: 'Pro Glow', price: 180000, now: 144000 },
+    Hazel: { code: 'C3W2', tier: 'Pro Glow', price: 180000, now: 144000 },
+    Amber: { code: 'FC01A', tier: 'Professional Base', price: 120000, now: 96000 },
+    Espresso: { code: 'FC01E', tier: 'Professional Base', price: 120000, now: 96000 },
+    Cocoa: { code: 'FC01C', tier: 'Professional Base', price: 120000, now: 96000 },
   };
 
   for (const [label, want] of Object.entries(expected)) {
-    it(`${label} (${want.code}) is ${want.tier} at ${want.price / 100}`, () => {
+    it(`${label} (${want.code}) is ${want.tier}, listed ${want.price / 100}, charged ${want.now / 100}`, () => {
       const variant = foundation.variants.find((v) => v.label === label)!;
       expect(variant, `${label} missing`).toBeDefined();
       expect(variant.code).toBe(want.code);
       expect(variant.tier).toBe(want.tier);
-      expect(unitPriceMinor(foundation, variant)).toBe(want.price);
+      expect(listPriceMinor(foundation, variant)).toBe(want.price);
+      expect(unitPriceMinor(foundation, variant)).toBe(want.now);
     });
   }
 
@@ -117,10 +162,14 @@ describe('foundation shade tiers', () => {
     }
   });
 
-  it('spans ₹1,200 to ₹1,800', () => {
-    const range = priceRangeMinor(foundation);
-    expect(range.min).toBe(120000);
-    expect(range.max).toBe(180000);
+  it('spans ₹1,200 to ₹1,800 at list, ₹960 to ₹1,440 under the offer', () => {
+    const list = listPriceRangeMinor(foundation);
+    expect(list.min).toBe(120000);
+    expect(list.max).toBe(180000);
+
+    const now = priceRangeMinor(foundation);
+    expect(now.min).toBe(96000);
+    expect(now.max).toBe(144000);
   });
 
   it('prices every other product identically across its shades', () => {

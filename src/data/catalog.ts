@@ -30,7 +30,39 @@
 import type { CatalogItem, Money, Variant } from '../commerce/types.js';
 
 /**
- * What one unit of a given shade costs.
+ * The launch offer.
+ *
+ * ONE RATE, APPLIED IN ONE PLACE. The alternative — typing a second discounted
+ * figure beside every `priceMinor` — is nine chances to fat-finger a number
+ * that is charged to a real card, and no way to end the sale except editing all
+ * nine back. Here, `active: false` ends it and every price on the site reverts
+ * in the same commit.
+ *
+ * It is applied inside `unitPriceMinor` rather than at render, which is the
+ * whole point: `api/_lib/pricing.ts` prices every cart through that function,
+ * so the discount reaches the payment request automatically. A discount applied
+ * only in the UI shows ₹880 on the card and charges ₹1,100 to the card.
+ */
+export const OFFER = {
+  active: true,
+  /** Fraction off the list price. 0.2 is twenty percent. */
+  rate: 0.2,
+  label: 'Launch offer',
+  terms: 'Limited period',
+} as const;
+
+/**
+ * What one unit of a given shade costs BEFORE the offer — the struck-through
+ * figure, and the only honest thing to strike through. Showing a "was" price
+ * the product never sold at is the practice consumer regulators actually
+ * prosecute, so this stays the real list price rather than an inflated one.
+ */
+export function listPriceMinor(product: CatalogItem, variant: Variant): Money {
+  return variant.priceMinor ?? product.priceMinor;
+}
+
+/**
+ * What one unit of a given shade costs today.
  *
  * The single definition of that, deliberately. The server prices every cart
  * through this function and the storefront displays through it, so the figure
@@ -40,7 +72,16 @@ import type { CatalogItem, Money, Variant } from '../commerce/types.js';
  * correct for seven products and silently wrong for the Foundation.
  */
 export function unitPriceMinor(product: CatalogItem, variant: Variant): Money {
-  return variant.priceMinor ?? product.priceMinor;
+  const list = listPriceMinor(product, variant);
+  if (!OFFER.active) return list;
+  // Rounded to whole rupees. A sale price of ₹636.40 reads as a rounding bug
+  // and prints badly at the sizes this page sets prices in.
+  return Math.round((list * (1 - OFFER.rate)) / 100) * 100;
+}
+
+/** What this shade saves against its list price. Zero when the offer is off. */
+export function savingMinor(product: CatalogItem, variant: Variant): Money {
+  return listPriceMinor(product, variant) - unitPriceMinor(product, variant);
 }
 
 /**
@@ -53,6 +94,12 @@ export function unitPriceMinor(product: CatalogItem, variant: Variant): Money {
  */
 export function priceRangeMinor(product: CatalogItem): { min: Money; max: Money } {
   const prices = product.variants.map((variant) => unitPriceMinor(product, variant));
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+/** The same range before the offer, so a card can strike through its headline. */
+export function listPriceRangeMinor(product: CatalogItem): { min: Money; max: Money } {
+  const prices = product.variants.map((variant) => listPriceMinor(product, variant));
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 

@@ -39,6 +39,19 @@
   text-transform: uppercase;
 }
 
+/*
+ * The offer, lifted out of the muted bar text.
+ *
+ * `--gold` rather than plain white: the bar sits on `--void` and its own colour
+ * is `--void-ink-3`, so white would read as "the rest of the sentence, louder"
+ * where gold reads as a separate claim. Weight alone is not enough at this size
+ * and letter-spacing.
+ */
+.announce__offer {
+  color: var(--gold);
+  font-weight: 700;
+}
+
 /* ── Navigation ───────────────────────────────────────────────────────── */
 
 .nav {
@@ -811,12 +824,62 @@
   flex-wrap: wrap;
 }
 
+/*
+ * Set in the display face, not the body face.
+ *
+ * Previously this was `--t-small` at weight 500 in `--font-text` — the exact
+ * treatment the blurb beneath it gets, so on a minimal card the price read as
+ * one more line of copy and the eye slid past it. The fix is hierarchy rather
+ * than decoration: Syne at a heavier optical weight is already how the product
+ * page sets its price, so borrowing it here makes a price legible as a price
+ * across the whole site without introducing a colour or a box to do it.
+ */
 .card__price {
-  font-weight: 500;
-  font-size: var(--t-small);
-  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 88, 'wght' 600;
+  font-size: var(--t-body);
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums lining-nums;
   color: var(--ink);
+}
+
+/*
+ * The struck list price.
+ *
+ * Deliberately quieter than the price beside it, and returned to the body face
+ * — inheriting the display face would make the two figures compete, and the one
+ * that must win is the one being charged. A sale that renders the old number as
+ * loudly as the new one is not a sale, it is two prices and a puzzle.
+ */
+.card__price-was {
+  margin-left: 8px;
+  font-family: var(--font-text);
+  font-variation-settings: normal;
+  font-size: var(--t-micro);
+  font-weight: 400;
+  color: var(--ink-3);
+  /* The default hairline vanishes against a 11px muted figure. */
+  text-decoration-thickness: 1px;
+}
+
+/*
+ * Rides the far end of `.card__meta`'s space-between row, opposite the price.
+ *
+ * A filled pill rather than bare text: this is the one element on the card
+ * allowed to be loud, and at `--t-micro` colour alone is not enough to carry it.
+ * `--gold-dim` is a 32% wash, so it reads as a tint of the page rather than a
+ * sticker dropped onto it.
+ */
+.card__off {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  background: var(--gold-dim);
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
 }
 
 .card__size {
@@ -2208,6 +2271,36 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/*
+ * Set well below the display-face price it follows. At `--t-h3` the two figures
+ * would compete, and the one that must win is the one being charged.
+ */
+.pdp__price-was {
+  margin-left: 12px;
+  font-family: var(--font-text);
+  font-variation-settings: normal;
+  font-size: var(--t-small);
+  font-weight: 400;
+  color: var(--ink-3);
+  text-decoration-thickness: 1px;
+}
+
+.pdp__off {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  /* Its own pill so it reads as a claim about the price rather than part of
+     it — `.pdp__meta` is a 20px-gap flex row, so this sits clear of the price.
+     Filled to match `.card__off`, so the same claim looks the same wherever a
+     buyer meets it. */
+  background: var(--gold-dim);
+  border-radius: 999px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
 .pdp__blurb {
   margin-top: 22px;
 }
@@ -2300,14 +2393,32 @@
   border-top: 1px solid var(--hair);
 }
 
+/*
+ * Grid, not flex — and the reason is worth keeping.
+ *
+ * As a wrapping flex row, a value short enough to sit beside its label did, and
+ * a value one word too long dropped to a flex line of its own. Alone on that
+ * line, `justify-content: space-between` parked it at flex-start and the
+ * `text-align: right` below had a shrink-to-fit box to work in, so it did
+ * nothing. The result was that "Registered address" rendered left-aligned under
+ * its label while "Returns address" — twelve characters shorter — stayed on the
+ * line, right-aligned. Two address rows, two different layouts, decided by
+ * string length.
+ *
+ * A two-column grid cannot wrap, so every row behaves the same way whatever it
+ * contains: label left, value right, long values wrapping inside their own
+ * column with their right edge still flush. Per-row `auto` sizing is fine
+ * because the eye tracks the right edge here, and that is what stays aligned.
+ */
 .prose__entity dl > div {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
   gap: 24px;
-  flex-wrap: wrap;
   padding: 13px 0;
   border-bottom: 1px solid var(--hair-soft);
 }
+
 
 .prose__entity dt {
   font-size: var(--t-micro);
@@ -2320,6 +2431,35 @@
   font-size: var(--t-small);
   color: var(--ink);
   text-align: right;
+}
+
+/*
+ * A phone number or an email split across a line break stops being one. These
+ * rows are a list of contact atoms separated by middots, so each atom is kept
+ * whole and the break is taken at a separator instead.
+ */
+.prose__entity dd .atom {
+  white-space: nowrap;
+}
+
+/*
+ * Two columns of a long address in 390px is a column of single words, so the
+ * rows stack. Left-aligned once stacked: right-aligned text over a narrow
+ * measure gives the ragged left edge this block exists to avoid.
+ *
+ * MUST come after the `text-align: right` above. Both selectors carry the same
+ * specificity, so a media query placed earlier in the file loses to it and the
+ * override silently does nothing — which is exactly what happened first time.
+ */
+@media (max-width: 560px) {
+  .prose__entity dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .prose__entity dd {
+    text-align: left;
+  }
 }
 
 .prose__nav {
@@ -3249,4 +3389,55 @@
   .process__step:nth-child(-n + 6) {
     border-bottom: 1px solid var(--hair-soft);
   }
+}
+
+/* ============================================================================
+   Ingredients
+   ========================================================================= */
+
+.ingredients__size {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: -6px;
+}
+
+/*
+ * An INCI list is a wall of long unfamiliar words, and the default measure
+ * makes it a wall of long unfamiliar words with nowhere to rest. Slightly
+ * looser leading and a capped measure are the only things that make it
+ * scannable for the one term somebody is actually looking for.
+ *
+ * `overflow-wrap` matters here more than usual: single tokens like
+ * `PEG-15/PPG-70 GLYCERYL ETHER/IPDI/DMPA CROSSPOLYMER` are longer than a phone
+ * column, and without it they push the page into a horizontal scroll.
+ */
+.ingredients__list {
+  margin-top: 10px;
+  line-height: 1.75;
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * A plain underlined link, with no stretched hit area.
+ *
+ * Emphatically not built on `.card__link`: that one's `::after { inset: 0 }`
+ * exists to make an entire product card clickable, and it anchors to the
+ * nearest positioned ancestor. On a text page that is the article, so every
+ * heading's overlay covers the whole page and the last one wins — the symptom
+ * being that a click on Foundation's ingredients opened the Sunscreen page.
+ */
+.ingredients__link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--hair);
+  transition: border-color var(--d-micro) var(--ease-inout);
+}
+
+.ingredients__link:hover,
+.ingredients__link:focus-visible {
+  border-bottom-color: var(--ink);
 }

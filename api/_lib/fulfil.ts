@@ -1,4 +1,5 @@
 import { ShiprocketError, shiprocketFetch } from './shiprocket.js';
+import { FULFILMENT_TIMEOUT_MS } from './timeout.js';
 import type { Address } from './address.js';
 import type { PricedCart } from './pricing.js';
 import { orderTotals } from '../../src/commerce/policy.js';
@@ -147,10 +148,13 @@ export async function placeOrder(
   payload: ReturnType<typeof buildOrderPayload>,
 ): Promise<CreatedOrder & { duplicate: boolean }> {
   try {
-    const created = (await shiprocketFetch('/orders/create/adhoc', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })) as CreatedOrder;
+    const created = (await shiprocketFetch(
+      '/orders/create/adhoc',
+      { method: 'POST', body: JSON.stringify(payload) },
+      // Longer than a read deserves. Money has already moved by the time this
+      // runs on the prepaid path, so giving up early is the expensive mistake.
+      { timeoutMs: FULFILMENT_TIMEOUT_MS },
+    )) as CreatedOrder;
     return { ...created, duplicate: false };
   } catch (cause) {
     if (isDuplicateOrder(cause)) return { duplicate: true };

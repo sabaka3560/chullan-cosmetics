@@ -43,8 +43,20 @@
 
       Entity names are fixed by the content brief and must match everywhere they
       appear: "Chullan Make Up Professional", "NOWGENN Cosmetics Pvt Ltd",
-      "Ratheesh Rajan". No `sameAs` until the social profile URLs are confirmed —
-      a wrong one links the entity to an account that is not the brand's.
+      "Ratheesh Rajan".
+
+      `sameAs` carries only profiles confirmed by the business — a wrong one
+      links the entity to an account that is not the brand's, which is worse
+      than listing nothing. Both below are confirmed.
+
+      Both are also stored as canonical profile URLs, not as the share links
+      they were supplied as. Facebook in particular hands out
+      `/share/<opaque-id>/`, which is a redirect it owns and can retire; putting
+      that in an entity graph points Google at a URL whose destination we do not
+      control. It was resolved once, here, and the endpoint recorded instead.
+
+      This list and the anchors in `Footer.tsx` must stay in step, so that the
+      site and the entity graph never disagree about which accounts are ours.
     -->
     <script type="application/ld+json">
       {
@@ -57,6 +69,10 @@
         "logo": "https://chullancosmetics.com/favicon.svg",
         "description": "Professional base makeup formulated in the USA and manufactured in India, built for Indian skin tones and Indian conditions.",
         "foundingLocation": "India",
+        "sameAs": [
+          "https://www.instagram.com/chullanmakeup_cosmetics",
+          "https://www.facebook.com/chullancosmetics"
+        ],
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "Site No. 35, K. No. 35/35, Balaji Layout, Sathanur",

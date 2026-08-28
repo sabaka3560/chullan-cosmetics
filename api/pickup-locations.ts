@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { isConfigured } from './_lib/env.js';
 import { ShiprocketError, shiprocketFetch } from './_lib/shiprocket.js';
+import { ADMIN_LIMIT, rateLimited } from './_lib/rate-limit.js';
 
 /**
  * Lists the pickup locations configured on the Shiprocket account.
@@ -18,6 +19,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Operational rather than a buyer route, and it discloses the warehouse
+  // addresses on the account. Nobody legitimate calls it more than a few times.
+  if (rateLimited(request, response, ADMIN_LIMIT)) return;
 
   if (!isConfigured.shiprocket()) {
     return response.status(501).json({ error: 'not_configured' });

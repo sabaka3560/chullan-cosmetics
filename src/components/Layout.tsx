@@ -6,6 +6,7 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { formatMoney } from '../commerce/money';
 import { FREE_SHIPPING_THRESHOLD_MINOR } from '../commerce/policy';
+import { OFFER } from '../data/catalog';
 
 /**
  * The page chrome, extracted once there was more than one page.
@@ -21,9 +22,39 @@ export function Layout({ children }: { children: ReactNode }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4, ease: 'easeInOut' }}
     >
+      {/*
+        The offer REPLACES the brand claims rather than joining them.
+        `.announce` is a fixed-height grid, so a longer string does not push the
+        bar taller — it wraps inside it and spills over the navigation. At phone
+        widths the original line already fills two rows, and the two claims that
+        give way here ("professional base makeup", "formulated in the USA")
+        appear again further down every page, whereas the offer does not appear
+        anywhere else and expires.
+
+        Both branches are conditional on `OFFER.active`, so ending the sale
+        restores the old line in the same edit that restores the prices.
+      */}
       <p className="announce">
-        Free shipping over {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)} · Professional
-        base makeup · Formulated in the USA
+        {OFFER.active ? (
+          /*
+            Separators sit at the END of the segment they follow, never at the
+            start of the next one. At phone widths this line wraps, and written
+            the other way round the second line began with a bare "·" — a
+            dangling separator reads as a typo rather than as punctuation.
+          */
+          <>
+            <strong className="announce__offer">
+              {OFFER.label} · {Math.round(OFFER.rate * 100)}% off ·
+            </strong>{' '}
+            {OFFER.terms} · Free shipping over{' '}
+            {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)}
+          </>
+        ) : (
+          <>
+            Free shipping over {formatMoney(FREE_SHIPPING_THRESHOLD_MINOR)} · Professional
+            base makeup · Formulated in the USA
+          </>
+        )}
       </p>
       <Navbar />
       <main>{children}</main>

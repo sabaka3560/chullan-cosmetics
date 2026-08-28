@@ -2,6 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { InvalidCartError, parseLines, priceCart } from '../_lib/pricing.js';
 import { InvalidAddressError, parseAddress } from '../_lib/address.js';
 import { toNotes } from '../_lib/pending.js';
+import { totalsFor } from '../_lib/fulfil.js';
+import { withTimeout } from '../_lib/timeout.js';
+import { CHECKOUT_LIMIT, rateLimited } from '../_lib/rate-limit.js';
 import {
   isRazorpayConfigured,
   isTestMode,
@@ -33,6 +36,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.setHeader('Allow', 'POST');
     return response.status(405).json({ error: 'Method not allowed' });
   }
+
+  /*
+   * Before anything else that costs something.
+   *
+   * Every successful call here creates a real order on the live Razorpay
+   * account. Left open, a loop in a terminal fills the merchant dashboard with
+   * orders nobody placed and buries the genuine ones among them — which is not
+   * a security breach so much as an operations one, and just as expensive.
+   */
+  if (rateLimited(request, response, CHECKOUT_LIMIT)) return;
 
   if (!isRazorpayConfigured()) {
     return response.status(501).json({
@@ -78,8 +91,26 @@ export default async function handler(request: VercelRequest, response: VercelRe
       (host.startsWith('localhost') ? 'http' : 'https');
     const origin = `${proto}://${host}`;
 
-    const order = (await razorpayClient().orders.create({
-      amount: cart.subtotalMinor,
+    /*
+     * The charge is the subtotal PLUS delivery.
+     *
+     * This used to be `cart.subtotalMinor` alone, on the assumption — stated
+     * throughout the comments here — that Magic Checkout would ask
+     * `/api/shipping-info` for the delivery cost and add it before charging.
+     * Magic Checkout is not enabled on this account, so nothing ever added it:
+     * every prepaid bag under the free-shipping threshold was charged ₹99 less
+     * than the summary in front of the buyer said, while `buildOrderPayload`
+     * went on reporting the higher total to Shiprocket.
+     *
+     * `orderTotals` is the same function the bag and the checkout summary use,
+     * so the amount charged is now the number the buyer was shown.
+     */
+    const { shippingFee, totalMinor } = totalsFor(cart, 'Prepaid');
+
+    const order = (await withTimeout(
+      'Razorpay orders.create',
+      razorpayClient().orders.create({
+      amount: totalMinor,
       currency: cart.currency,
       // Ours, not theirs — it comes back on the payment so an order can be
       // matched to this cart without trusting anything the browser says.
@@ -140,7 +171,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
       }),
       // The SDK overloads `create` for the callback form, so the promise
       // signature needs narrowing before the result can be read.
-    })) as { id: string; amount: number | string; currency: string };
+      }) as Promise<{ id: string; amount: number | string; currency: string }>,
+    )) as { id: string; amount: number | string; currency: string };
 
     // A priced cart belongs to one buyer at one moment; a CDN copy of it is
     // somebody else's order.
@@ -161,6 +193,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
        */
       reference,
       cart,
+      /*
+       * Sent so the browser can show the same breakdown the charge was built
+       * from, rather than recomputing it and hoping the two agree. `amount`
+       * above already includes this.
+       */
+      shippingFee,
     });
   } catch (cause) {
     if (cause instanceof InvalidCartError) {
