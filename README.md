@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# Chullan Cosmetics
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Production storefront for Chullan Cosmetics, built with React, TypeScript, Vite,
+Vercel Functions, Razorpay, and Shiprocket.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Requirements: Node.js 20.19+ (or 22.12+) and npm.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+npm ci
+Copy-Item .env.example .env.local
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Run the Vercel Functions and frontend in separate terminals:
+
+```powershell
+npx vercel dev --listen 3100
+```
+
+```powershell
+npm run dev
+```
+
+## Verification
+
+```powershell
+npm run lint
+npm run build
+npm run test:all
+```
+
+## Deployment
+
+The application is configured for Vercel. Set the server-only values documented
+in `.env.example` in the appropriate Vercel environments. Never prefix commerce
+credentials with `VITE_`, and never enable `COMMERCE_MODE=mock` in Production.
+
+`vercel.json` defines SPA routing, security headers, API cache policy, and static
+asset caching.
