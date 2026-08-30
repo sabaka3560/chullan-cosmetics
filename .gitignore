@@ -35,6 +35,11 @@ playwright-report
 
 .env*
 
+# Private project notes and generated handover documents. Keep these locally,
+# but do not include them in commits or deployment clones.
+PENDING.md
+docs/
+
 # Company and KYC paperwork. Kept out of the repository deliberately — an
 # Articles of Association is a legal document about the company, not an asset
 # of the site, and it does not belong in anything that gets cloned or shared.

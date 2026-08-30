@@ -3,13 +3,8 @@ import { products } from '../data/products';
 import { policies } from '../data/policies';
 
 /**
- * Every link here goes somewhere that exists.
- *
- * The previous columns advertised Gift Cards, a Shade Finder, Ingredients,
- * Sustainability and Stockists — five pages that were never built, all pointing
- * at `#`. A footer full of dead links costs more trust than a short one costs
- * in perceived range, and on a storefront it is also the place buyers go
- * looking for the returns policy before they order.
+ * Every link here leads to useful, published content. A storefront footer is
+ * also where buyers look for the returns policy before placing an order.
  */
 const shopLinks = products.slice(0, 4).map((product) => ({
   label: product.name,
@@ -72,11 +67,7 @@ export function Footer() {
             <h4>Explore</h4>
             <ul>
               <li><Link to="/about">About Us</Link></li>
-              <li><Link to="/gift-cards">Gift Cards</Link></li>
-              <li><Link to="/shade-finder">Shade Finder</Link></li>
               <li><Link to="/ingredients">Ingredients</Link></li>
-              <li><Link to="/sustainability">Sustainability</Link></li>
-              <li><Link to="/stockists">Stockists</Link></li>
             </ul>
           </nav>
         </div>
