@@ -41,12 +41,12 @@ import type { CatalogItem, Money, Variant } from '../commerce/types.js';
  * It is applied inside `unitPriceMinor` rather than at render, which is the
  * whole point: `api/_lib/pricing.ts` prices every cart through that function,
  * so the discount reaches the payment request automatically. A discount applied
- * only in the UI shows ₹880 on the card and charges ₹1,100 to the card.
+ * only in the UI shows ₹935 on the card and charges ₹1,100 to the card.
  */
 export const OFFER = {
   active: true,
-  /** Fraction off the list price. 0.2 is twenty percent. */
-  rate: 0.2,
+  /** Fraction off the list price. 0.15 is fifteen percent. */
+  rate: 0.15,
   label: 'Launch offer',
   terms: 'Limited period',
 } as const;

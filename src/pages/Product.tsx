@@ -117,7 +117,7 @@ export default function Product() {
                   {selected && savingMinor(product, selected) > 0 ? (
                     /* States the rupees saved, not just the percentage. On a
                        page where one shade is selected there is a real figure
-                       to give, and "save ₹360" is a stronger claim than "20%
+                       to give, and "save ₹270" is a stronger claim than "15%
                        off" precisely because it is concrete. */
                     <span className="pdp__off">
                       {OFFER.label} · save {formatMoney(savingMinor(product, selected))}

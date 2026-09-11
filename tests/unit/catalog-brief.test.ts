@@ -34,14 +34,14 @@ const BRIEF: Record<
   string,
   { price: string; minor: number; now: string; nowMinor: number; from?: boolean; shades: number }
 > = {
-  foundation:          { price: 'FROM ₹1,200', minor: 120000, now: 'FROM ₹960', nowMinor: 96000, from: true, shades: 8 },
-  concealer:           { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 3 },
-  moisturiser:         { price: '₹1,100', minor: 110000, now: '₹880',   nowMinor: 88000,  shades: 1 },
-  primer:              { price: '₹1,500', minor: 150000, now: '₹1,200', nowMinor: 120000, shades: 1 },
-  'anti-shine-powder': { price: '₹795',   minor: 79500,  now: '₹636',   nowMinor: 63600,  shades: 4 },
-  'setting-spray':     { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 1 },
-  'colour-corrector':  { price: '₹1,950', minor: 195000, now: '₹1,560', nowMinor: 156000, shades: 1 },
-  sunscreen:           { price: '₹1,200', minor: 120000, now: '₹960',   nowMinor: 96000,  shades: 1 },
+  foundation:          { price: 'FROM ₹1,200', minor: 120000, now: 'FROM ₹1,020', nowMinor: 102000, from: true, shades: 8 },
+  concealer:           { price: '₹1,200', minor: 120000, now: '₹1,020', nowMinor: 102000, shades: 3 },
+  moisturiser:         { price: '₹1,100', minor: 110000, now: '₹935',   nowMinor: 93500,  shades: 1 },
+  primer:              { price: '₹1,500', minor: 150000, now: '₹1,275', nowMinor: 127500, shades: 1 },
+  'anti-shine-powder': { price: '₹795',   minor: 79500,  now: '₹676',   nowMinor: 67600,  shades: 4 },
+  'setting-spray':     { price: '₹1,200', minor: 120000, now: '₹1,020', nowMinor: 102000, shades: 1 },
+  'colour-corrector':  { price: '₹1,950', minor: 195000, now: '₹1,658', nowMinor: 165800, shades: 1 },
+  sunscreen:           { price: '₹1,200', minor: 120000, now: '₹1,020', nowMinor: 102000, shades: 1 },
 };
 
 const shown = (range: { min: number; max: number }, from?: boolean) =>
@@ -111,14 +111,14 @@ describe('foundation shade tiers', () => {
    * FC-coded deep shades are Professional Base.
    */
   const expected: Record<string, { code: string; tier: string; price: number; now: number }> = {
-    Bisque: { code: 'C1W1', tier: 'Pro Glow', price: 180000, now: 144000 },
-    Cashew: { code: 'C2W1', tier: 'Pro Glow', price: 180000, now: 144000 },
-    Almond: { code: 'C2W2', tier: 'Pro Glow', price: 180000, now: 144000 },
-    Fawn: { code: 'C3W1', tier: 'Pro Glow', price: 180000, now: 144000 },
-    Hazel: { code: 'C3W2', tier: 'Pro Glow', price: 180000, now: 144000 },
-    Amber: { code: 'FC01A', tier: 'Professional Base', price: 120000, now: 96000 },
-    Espresso: { code: 'FC01E', tier: 'Professional Base', price: 120000, now: 96000 },
-    Cocoa: { code: 'FC01C', tier: 'Professional Base', price: 120000, now: 96000 },
+    Bisque: { code: 'C1W1', tier: 'Pro Glow', price: 180000, now: 153000 },
+    Cashew: { code: 'C2W1', tier: 'Pro Glow', price: 180000, now: 153000 },
+    Almond: { code: 'C2W2', tier: 'Pro Glow', price: 180000, now: 153000 },
+    Fawn: { code: 'C3W1', tier: 'Pro Glow', price: 180000, now: 153000 },
+    Hazel: { code: 'C3W2', tier: 'Pro Glow', price: 180000, now: 153000 },
+    Amber: { code: 'FC01A', tier: 'Professional Base', price: 120000, now: 102000 },
+    Espresso: { code: 'FC01E', tier: 'Professional Base', price: 120000, now: 102000 },
+    Cocoa: { code: 'FC01C', tier: 'Professional Base', price: 120000, now: 102000 },
   };
 
   for (const [label, want] of Object.entries(expected)) {
@@ -162,14 +162,14 @@ describe('foundation shade tiers', () => {
     }
   });
 
-  it('spans ₹1,200 to ₹1,800 at list, ₹960 to ₹1,440 under the offer', () => {
+  it('spans ₹1,200 to ₹1,800 at list, ₹1,020 to ₹1,530 under the offer', () => {
     const list = listPriceRangeMinor(foundation);
     expect(list.min).toBe(120000);
     expect(list.max).toBe(180000);
 
     const now = priceRangeMinor(foundation);
-    expect(now.min).toBe(96000);
-    expect(now.max).toBe(144000);
+    expect(now.min).toBe(102000);
+    expect(now.max).toBe(153000);
   });
 
   it('prices every other product identically across its shades', () => {
